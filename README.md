@@ -6,3 +6,6 @@ Ewen Pichoff <br>
 Mathys Gallienne <br>
 Malo Denis--Maignan <br>
 Johnny Granger
+
+# Documentation
+- [Cahier des charges](docs/CDC.md)
