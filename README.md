@@ -2,7 +2,7 @@
 Application d'assistance juridique assisté par IA.
 
 # Membre du groupe
-Ewen Pichoff
-Mathys Gallienne
-Malo Denis--Maignan
+Ewen Pichoff <br>
+Mathys Gallienne <br>
+Malo Denis--Maignan <br>
 Johnny Granger
