@@ -873,6 +873,10 @@ def main(argv: list[str] | None = None) -> int:
         runs: list[dict[str, Any]] = []
         requests: list[dict[str, Any]] = []
         started_at = datetime.now(UTC).isoformat()
+        meta = build_meta(
+            args, host, models, num_ctxs, pages_list,
+            preflight_info, started_at, monitor_enabled,
+        )
 
         for model in models:
             for num_ctx in num_ctxs:
@@ -906,6 +910,7 @@ def main(argv: list[str] | None = None) -> int:
                         )
                         runs.append(run)
                         requests.extend(run_requests)
+                        write_outputs(args.output_dir, args.tag, meta, runs, requests)
                         print(
                             f"    total={run['pipeline_wall_s']}s "
                             f"prefill={fmt(run['prefill_tok_s'])} tok/s "
@@ -919,19 +924,12 @@ def main(argv: list[str] | None = None) -> int:
                                 write_outputs(
                                     args.output_dir,
                                     args.tag,
-                                    build_meta(
-                                        args, host, models, num_ctxs, pages_list,
-                                        preflight_info, started_at, monitor_enabled,
-                                    ),
+                                    meta,
                                     runs,
                                     requests,
                                 )
                                 return 1
 
-        meta = build_meta(
-            args, host, models, num_ctxs, pages_list,
-            preflight_info, started_at, monitor_enabled,
-        )
         meta["finished_at"] = datetime.now(UTC).isoformat()
         meta["ps_after"] = ollama_ps(client, host)
         json_path = write_outputs(args.output_dir, args.tag, meta, runs, requests)
