@@ -1,0 +1,478 @@
+{
+  "schema_version": 1,
+  "annotation_date": "2026-11-03",
+  "method": "Annotation manuelle à partir du texte extrait page par page. Les citations conservent le sens et les mots du document ; les retours à la ligne de mise en page sont normalisés en espaces.",
+  "documents": [
+    {
+      "file": "abonnement-01-transport-idfm.pdf",
+      "category": "abonnement",
+      "expected_type": "Contrat d'abonnement de transport",
+      "clauses_to_check": [
+        {
+          "id": "A01-C01",
+          "title": "Absence de remboursement pendant l'attente du forfait",
+          "quote": "Les titres de transport utilisés en attendant d’obtenir le forfait Améthyste ne sont pas remboursés.",
+          "page": 2,
+          "level": "attention",
+          "rationale": "Le bénéficiaire supporte les frais de transport engagés avant l'obtention effective du forfait."
+        },
+        {
+          "id": "A01-C02",
+          "title": "Achat d'un titre en cas d'oubli",
+          "quote": "En cas d’oubli de son passe Navigo, le Titulaire doit, pour pouvoir voyager sans être en infraction, acheter un autre titre de transport. Celui-ci ne sera pas remboursé.",
+          "page": 3,
+          "level": "attention",
+          "rationale": "L'oubli du passe impose un nouvel achat non remboursable."
+        },
+        {
+          "id": "A01-C03",
+          "title": "Indemnité pour défaut de validation",
+          "quote": "Le constat du non-respect des principes de validation systématique (cf. art. 5) et/ou des règles d’utilisation du forfait Améthyste (cf. art. 2) entraîne le paiement d’une indemnité forfaitaire et des frais de dossiers éventuellement associés conformément à la règlementation applicable aux services de transports publics de voyageurs en Île-de-France.",
+          "page": 3,
+          "level": "important",
+          "rationale": "Une mauvaise validation peut entraîner une indemnité et des frais supplémentaires."
+        },
+        {
+          "id": "A01-C04",
+          "title": "Passe inactif et chargement non remboursé",
+          "quote": "Par conséquent le Titulaire s’engage à effectuer une nouvelle souscription et obtenir un nouveau passe en agence commerciale ou en ligne. Aucun remboursement ne pourra être effectué en cas de chargement de titre de transport sur le passe précité.",
+          "page": 4,
+          "level": "attention",
+          "rationale": "Après cinq ans d'inactivité, le titulaire doit obtenir un nouveau passe et risque de perdre un chargement effectué sur l'ancien."
+        },
+        {
+          "id": "A01-C05",
+          "title": "Résiliation liée à la lutte contre la fraude",
+          "quote": "Par ailleurs, un traitement ayant pour finalité la prévention et la gestion des impayés, du vol et de la perte des titres de transports ainsi que la lutte contre la fraude peut aboutir à un rejet de la transaction ou à une résiliation du forfait.",
+          "page": 4,
+          "level": "important",
+          "rationale": "Le traitement antifraude peut conduire au rejet d'une transaction ou à la résiliation du forfait."
+        },
+        {
+          "id": "A01-C06",
+          "title": "Modification des conditions générales",
+          "quote": "Île-de-France Mobilités peut à tout moment faire évoluer les présentes Conditions Générales.",
+          "page": 9,
+          "level": "attention",
+          "rationale": "Les conditions applicables peuvent évoluer pendant la relation avec l'usager."
+        }
+      ]
+    },
+    {
+      "file": "abonnement-02-mediatheque-saint-mande.pdf",
+      "category": "abonnement",
+      "expected_type": "Contrat d'abonnement à une médiathèque",
+      "clauses_to_check": [
+        {
+          "id": "A02-C01",
+          "title": "Perte ou détérioration d'un document",
+          "quote": "•En cas de perte ou détérioration : oRemplacement à l’identique ou remboursement (montant fixé par la médiathèque).",
+          "page": 2,
+          "level": "attention",
+          "rationale": "L'usager peut devoir remplacer ou rembourser un document, selon un montant fixé par la médiathèque."
+        },
+        {
+          "id": "A02-C02",
+          "title": "Suspension en cas de retard",
+          "quote": "Sanction : Suspension du droit de prêt pour une durée équivalente au retard (à partir de 22 jours de retard).",
+          "page": 2,
+          "level": "important",
+          "rationale": "Un retard d'au moins 22 jours entraîne une suspension d'une durée équivalente."
+        },
+        {
+          "id": "A02-C03",
+          "title": "Exclusion pour trouble à l'ordre",
+          "quote": "En cas de récidive, une exclusion temporaire ou définitive peut être prononcée (Article 29).",
+          "page": 3,
+          "level": "important",
+          "rationale": "Une récidive peut conduire à une exclusion définitive de l'établissement."
+        },
+        {
+          "id": "A02-C04",
+          "title": "Conservation des données de connexion",
+          "quote": "Les données de connexion sont conservées conformément au RGPD (1 an maximum).",
+          "page": 4,
+          "level": "attention",
+          "rationale": "Les traces de connexion peuvent être conservées pendant un an."
+        },
+        {
+          "id": "A02-C05",
+          "title": "Effets personnels sous la responsabilité de l'usager",
+          "quote": "La médiathèque ne peut être tenue responsable en cas de perte, vol ou détérioration des effets personnels.",
+          "page": 5,
+          "level": "attention",
+          "rationale": "L'établissement exclut sa responsabilité pour les biens personnels."
+        }
+      ]
+    },
+    {
+      "file": "abonnement-03-piscine-oullins-pierre-benite.pdf",
+      "category": "abonnement",
+      "expected_type": "Contrat d'abonnement à un équipement sportif",
+      "clauses_to_check": [
+        {
+          "id": "A03-C01",
+          "title": "Évacuation sans remboursement",
+          "quote": "En cas de nécessité liée à la sécurité ou à l’hygiène, le Responsable d’Établissement est habilité à ordonner l’évacuation immédiate des bassins et/ou de l’établissement, sans que les usagers puissent prétendre à un quelconque remboursement.",
+          "page": 2,
+          "level": "attention",
+          "rationale": "Une évacuation décidée pour la sécurité ou l'hygiène n'ouvre aucun droit au remboursement."
+        },
+        {
+          "id": "A03-C02",
+          "title": "Fermeture sans prolongation de l'abonnement",
+          "quote": "En cas de fermeture de la piscine municipale, aucune prolongation de la durée de validité des abonnements ou titres d’accès ne sera accordée.",
+          "page": 3,
+          "level": "important",
+          "rationale": "La durée de l'abonnement continue de courir même lorsque la piscine ferme."
+        },
+        {
+          "id": "A03-C03",
+          "title": "Sortie définitive et nouvelle entrée payante",
+          "quote": "Toute sortie, qu’elle soit temporaire ou volontaire, est considérée comme définitive. Une fois sorti, l’usager ne peut pas réintégrer les bassins ou espaces de l’établissement sans procéder à un nouvel achat de droit d’entrée ou de ticket.",
+          "page": 3,
+          "level": "attention",
+          "rationale": "Une sortie même temporaire impose l'achat d'une nouvelle entrée."
+        },
+        {
+          "id": "A03-C04",
+          "title": "Perte ou vol des effets personnels",
+          "quote": "La responsabilité de la Ville ne pourra être engagée en cas de perte ou de vol.",
+          "page": 4,
+          "level": "attention",
+          "rationale": "La Ville exclut sa responsabilité pour la perte ou le vol des biens déposés."
+        },
+        {
+          "id": "A03-C05",
+          "title": "Exclusion sans remboursement",
+          "quote": "L’exclusion des personnes ayant troublé le bon ordre de l’établissement ne peut en aucun cas donner lieu au remboursement du droit d’entrée réglé pour l’accès à l’établissement.",
+          "page": 10,
+          "level": "important",
+          "rationale": "Une exclusion fait perdre le prix d'entrée déjà payé."
+        },
+        {
+          "id": "A03-C06",
+          "title": "Facturation des dégradations",
+          "quote": "Tout dommage ou dégât causé aux installations sera réparé par les soins de la Ville d’Oullins-Pierre- Bénite et facturé aux contrevenants, sans préjuger des poursuites pénales que la Commune pourrait décider d’engager à l’encontre des responsables.",
+          "page": 10,
+          "level": "important",
+          "rationale": "Les dégradations peuvent être facturées en plus d'éventuelles poursuites."
+        }
+      ]
+    },
+    {
+      "file": "bail-01-logement-nu.pdf",
+      "category": "bail",
+      "expected_type": "Bail d'habitation non meublé",
+      "clauses_to_check": [
+        {
+          "id": "B01-C01",
+          "title": "Reconduction tacite du bail",
+          "quote": "En l'absence de proposition de renouvellement du contrat, celui-ci est, à son terme, reconduit tacitement pour 3 ou 6 ans et dans les mêmes conditions.",
+          "page": 2,
+          "level": "attention",
+          "rationale": "Le bail est automatiquement reconduit si aucune démarche contraire n'est effectuée."
+        },
+        {
+          "id": "B01-C02",
+          "title": "Complément de loyer",
+          "quote": "- le cas échéant Complément de loyer : [si un complément de loyer est prévu, indiquer le montant du loyer de base, nécessairement égal au loyer de référence majoré, le montant du complément de loyer et les caractéristiques du logement justifiant le complément de loyer].",
+          "page": 3,
+          "level": "attention",
+          "rationale": "Le montant et la justification d'un éventuel complément de loyer doivent être vérifiés dans le contrat rempli."
+        },
+        {
+          "id": "B01-C03",
+          "title": "Dépôt de garantie",
+          "quote": "Le cas échéant, Montant du dépôt de garantie de l'exécution des obligations du locataire / Garantie autonome : [inférieur ou égal à un mois de loyers hors charges].",
+          "page": 4,
+          "level": "attention",
+          "rationale": "Le dépôt indiqué doit respecter le plafond d'un mois de loyer hors charges."
+        },
+        {
+          "id": "B01-C04",
+          "title": "Solidarité entre colocataires",
+          "quote": "Modalités particulières des obligations en cas de pluralité de locataires : [clause prévoyant la solidarité des locataires et l'indivisibilité de leurs obligations en cas de pluralité de locataires].",
+          "page": 4,
+          "level": "important",
+          "rationale": "Une clause de solidarité peut rendre chaque colocataire responsable de l'ensemble des obligations."
+        },
+        {
+          "id": "B01-C05",
+          "title": "Résiliation de plein droit pour impayé",
+          "quote": "Le contrat de location est résilié de plein droit pour défaut de paiement du loyer ou des charges aux termes convenus ou pour non versement du dépôt de garantie. La clause de résiliation de plein droit ne produit effet que six semaines après la date d'un commandement de payer demeuré infructueux.",
+          "page": 4,
+          "level": "important",
+          "rationale": "Un impayé de loyer, de charges ou de dépôt peut déclencher la résiliation après le délai indiqué."
+        }
+      ]
+    },
+    {
+      "file": "bail-02-logement-meuble.pdf",
+      "category": "bail",
+      "expected_type": "Bail d'habitation meublé",
+      "clauses_to_check": [
+        {
+          "id": "B02-C01",
+          "title": "Reconduction tacite hors bail étudiant",
+          "quote": "A l'exception des locations consenties à un étudiant pour une durée de neuf mois, les contrats de location de logements meublés sont reconduits tacitement à leur terme pour une durée d'un an et dans les mêmes conditions.",
+          "page": 2,
+          "level": "attention",
+          "rationale": "Le bail meublé ordinaire est automatiquement renouvelé pour un an."
+        },
+        {
+          "id": "B02-C02",
+          "title": "Absence de reconduction du bail étudiant",
+          "quote": "Les contrats de locations meublées consenties à un étudiant pour une durée de neuf mois ne sont pas reconduits tacitement à leur terme et le locataire peut mettre fin au bail à tout moment, après avoir donné congé.",
+          "page": 3,
+          "level": "important",
+          "rationale": "Le bail étudiant prend fin sans reconduction automatique."
+        },
+        {
+          "id": "B02-C03",
+          "title": "Dépôt de garantie du meublé",
+          "quote": "Le cas échéant, Montant du dépôt de garantie de l'exécution des obligations du locataire : [inférieur ou égal à deux mois de loyers hors charges].",
+          "page": 4,
+          "level": "attention",
+          "rationale": "Le dépôt indiqué doit respecter le plafond de deux mois de loyer hors charges."
+        },
+        {
+          "id": "B02-C04",
+          "title": "Solidarité entre colocataires",
+          "quote": "Modalités particulières des obligations en cas de pluralité de locataires : [clause prévoyant la solidarité des locataires et l'indivisibilité de leurs obligations en cas de pluralité de locataires].",
+          "page": 4,
+          "level": "important",
+          "rationale": "Une clause de solidarité peut rendre chaque colocataire responsable de l'ensemble des obligations."
+        },
+        {
+          "id": "B02-C05",
+          "title": "Résiliation de plein droit pour impayé",
+          "quote": "Le contrat de location est résilié de plein droit pour défaut de paiement du loyer ou des charges aux termes convenus ou pour non versement du dépôt de garantie. La clause de résiliation de plein droit ne produit effet que six semaines après la date d'un commandement de payer demeuré infructueux.",
+          "page": 4,
+          "level": "important",
+          "rationale": "Un impayé de loyer, de charges ou de dépôt peut déclencher la résiliation après le délai indiqué."
+        }
+      ]
+    },
+    {
+      "file": "bail-03-bail-rural-cher.pdf",
+      "category": "bail",
+      "expected_type": "Bail rural",
+      "clauses_to_check": [
+        {
+          "id": "B03-C01",
+          "title": "Durée et renouvellement du bail rural",
+          "quote": "A défaut de congé, le présent bail est renouvelé par période de 9 ans dans les mêmes conditions, sauf accords ou décisions contraires, notamment sur le prix, pour lequel la mise à jour se fait au moment du renouvellement, selon les termes des articles L 411-46 et L 411-50 du Code rural.",
+          "page": 2,
+          "level": "important",
+          "rationale": "Le bail se renouvelle par périodes de neuf ans, avec une possible mise à jour du prix."
+        },
+        {
+          "id": "B03-C02",
+          "title": "Droit de visite annuel du bailleur",
+          "quote": "Toutefois, le BAILLEUR pourra visiter les biens loués au moins une fois par an en prévenant par écrit le PRENEUR au moins 8 jours à l'avance",
+          "page": 3,
+          "level": "attention",
+          "rationale": "Le contrat prévoit un droit de visite annuel sous réserve d'un préavis écrit."
+        },
+        {
+          "id": "B03-C03",
+          "title": "Travaux supportés sans réduction du fermage",
+          "quote": "Le PRENEUR souffre, sans indemnité ni diminution du fermage, et quelle qu'en soit la durée, même au- delà de 40 jours, toutes les réfections et réparations menues ou grosses nécessaires aux bâtiments loués.",
+          "page": 5,
+          "level": "important",
+          "rationale": "Les travaux, même longs, ne donnent pas droit à une indemnité ni à une baisse du fermage selon cette clause."
+        },
+        {
+          "id": "B03-C04",
+          "title": "Remboursement de taxes au bailleur",
+          "quote": "En outre, en plus du fermage, il rembourse, au bailleur, sur justificatif, tous droits, taxes et cotisations lorsque ce dernier les aura acquittés en ses lieux et place ou qu'une part est due par le PRENEUR",
+          "page": 5,
+          "level": "attention",
+          "rationale": "Certaines taxes et cotisations peuvent s'ajouter au fermage."
+        },
+        {
+          "id": "B03-C05",
+          "title": "Sous-location sanctionnée par la résiliation",
+          "quote": "Toute sous-location, même partielle, est interdite et constitue une cause de résiliation du bail.",
+          "page": 8,
+          "level": "important",
+          "rationale": "Une sous-location non autorisée peut entraîner la résiliation du bail."
+        },
+        {
+          "id": "B03-C06",
+          "title": "Résiliation pour défauts de paiement",
+          "quote": "Le BAILLEUR peut introduire une action en résiliation dans les situations suivantes (art L 411-31 du Code Rural) : - lorsque 2 défauts de paiements de fermages (concernant une seule et même échéance ou plusieurs échéances différentes) ont persisté plus de 3 mois après mise en demeure",
+          "page": 9,
+          "level": "important",
+          "rationale": "Deux défauts de paiement persistants après mise en demeure peuvent conduire à une action en résiliation."
+        }
+      ]
+    },
+    {
+      "file": "travail-01-cdi-pajemploi.pdf",
+      "category": "travail",
+      "expected_type": "Contrat de travail à durée indéterminée",
+      "clauses_to_check": [
+        {
+          "id": "T01-C01",
+          "title": "Rémunération pendant la période d'adaptation",
+          "quote": "Pendant cette période d’adaptation, incluse dans la période d’essai, le salarié sera rémunéré sur la base du salaire mensuel du présent contrat duquel sera déduite la rémunération des heures de travail non effectué.",
+          "page": 2,
+          "level": "attention",
+          "rationale": "Les heures non effectuées pendant l'adaptation sont déduites du salaire mensuel."
+        },
+        {
+          "id": "T01-C02",
+          "title": "Modification des horaires",
+          "quote": "Les parties conviennent de la possibilité de modifier les éléments mentionnés ci-dessus, sous réserve du respect d’un délai de prévenance de (à définir entre les parties).",
+          "page": 3,
+          "level": "important",
+          "rationale": "Le délai de prévenance doit être expressément complété pour encadrer les changements d'horaires."
+        },
+        {
+          "id": "T01-C03",
+          "title": "Majoration au-delà de 45 heures",
+          "quote": "Si le salarié est amené à effectuer des heures majorées (au-delà de 45 heures hebdomadaires), celles-ci donneront lieu à une majoration du salaire et seront rémunérées au taux horaire brut majoré de % (ce taux ne pouvant être inférieur à 10% selon l’article 110-1 de la convention collective).",
+          "page": 4,
+          "level": "important",
+          "rationale": "Le pourcentage de majoration doit être complété et ne peut être inférieur à 10 %."
+        },
+        {
+          "id": "T01-C04",
+          "title": "Régularisation reportée à la fin du contrat",
+          "quote": "Au cours de l’exécution du contrat de travail, les régularisations prévisionnelles annuelles se compensent entre elles et n’entraînent pas de règlement. À la fin du contrat de travail, les sommes restant dues au titre de la régularisation sont déclarées et font l’objet d’un règlement dans les conditions prévues à l’article 56 du socle commun de la convention collective.",
+          "page": 4,
+          "level": "attention",
+          "rationale": "Les régularisations intermédiaires ne sont pas payées immédiatement ; le solde intervient à la fin du contrat."
+        },
+        {
+          "id": "T01-C05",
+          "title": "Indemnité en cas de retrait d'enfant",
+          "quote": "En fin de CDI, en cas de retrait d’enfant, l’employeur doit verser une indemnité de rupture si l’enfant est accueilli depuis au moins 9 mois. Elle est égale à 1/80 e du total des salaires bruts perçus pendant la durée du contrat",
+          "page": 5,
+          "level": "important",
+          "rationale": "La condition d'ancienneté et la base de calcul de l'indemnité doivent être prises en compte lors de la rupture."
+        },
+        {
+          "id": "T01-C06",
+          "title": "Travail pendant le repos hebdomadaire",
+          "quote": "Cependant, l’enfant peut exceptionnellement être confié au salarié, avec son accord écrit. Les parties conviennent alors que le travail pendant la période de repos hebdomadaire est : rémunéré au taux horaire dû, majoré à hauteur de 25 %. OU récupéré par un repos équivalent à la durée de travail, majoré de 25 %.",
+          "page": 5,
+          "level": "attention",
+          "rationale": "L'option retenue pour le travail exceptionnel pendant le repos doit être choisie et appliquée."
+        }
+      ]
+    },
+    {
+      "file": "travail-02-cdd-pajemploi.pdf",
+      "category": "travail",
+      "expected_type": "Contrat de travail à durée déterminée",
+      "clauses_to_check": [
+        {
+          "id": "T02-C01",
+          "title": "Terme lié au retour de la personne remplacée",
+          "quote": "Ce contrat est conclu pour la durée de l’absence de M. / Mme",
+          "page": 2,
+          "level": "important",
+          "rationale": "Lorsque le terme dépend d'un retour, l'identité de la personne remplacée et la durée minimale doivent être renseignées."
+        },
+        {
+          "id": "T02-C02",
+          "title": "Délai de communication du planning",
+          "quote": "L es jours et horaires de travail sont définis par un planning de travail remis au salarié par écrit dans le respect d’un délai de prévenance de (à définir entre les parties : ce délai ne peut être inférieur à 2 mois calendaires).",
+          "page": 3,
+          "level": "important",
+          "rationale": "Le délai doit être complété et respecter le minimum de deux mois."
+        },
+        {
+          "id": "T02-C03",
+          "title": "Majoration au-delà de 45 heures",
+          "quote": "Si le salarié est amené à effectuer des heures majorées (au-delà de 45 heures hebdomadaires), celles-ci donneront lieu à une majoration du salaire et seront rémunérées au taux horaire brut majoré de % (ce taux ne pouvant être inférieur à 10% selon l’article 110-1 de la convention collective).",
+          "page": 3,
+          "level": "important",
+          "rationale": "Le pourcentage de majoration doit être complété et ne peut être inférieur à 10 %."
+        },
+        {
+          "id": "T02-C04",
+          "title": "Indemnité de précarité",
+          "quote": "À l’issue de son contrat, le salarié bénéficiera d’une indemnité de fin de contrat (Indemnité de précarité) égale à 10 % de la rémunération brute totale (art. L. 1243-8 du Code du Travail).",
+          "page": 4,
+          "level": "important",
+          "rationale": "La fin du CDD prévoit une indemnité égale à 10 % de la rémunération brute totale."
+        },
+        {
+          "id": "T02-C05",
+          "title": "Travail pendant le repos hebdomadaire",
+          "quote": "Cependant, l’enfant peut exceptionnellement être confié au salarié, avec son accord écrit. Les parties conviennent alors que le travail pendant la période de repos hebdomadaire est : rémunéré au taux horaire dû, majoré à hauteur de 25 % . OU récupéré par un repos équivalent à la durée de travail, majoré de 25 % .",
+          "page": 4,
+          "level": "attention",
+          "rationale": "L'option retenue pour le travail exceptionnel pendant le repos doit être choisie et appliquée."
+        },
+        {
+          "id": "T02-C06",
+          "title": "Paiement des congés à la fin du contrat",
+          "quote": "La rémunération des congés payés dus, s’effectue selon la règle du 1 / 10e, versé à la fin du contrat.",
+          "page": 5,
+          "level": "attention",
+          "rationale": "L'indemnité de congés payés est calculée au dixième et versée à la fin du CDD."
+        }
+      ]
+    },
+    {
+      "file": "travail-03-apprentissage-cerfa-fa13.pdf",
+      "category": "travail",
+      "expected_type": "Contrat d'apprentissage",
+      "clauses_to_check": [
+        {
+          "id": "T03-C01",
+          "title": "Type de contrat et dérogation",
+          "quote": "Type de contrat ou d’avenant : Type de dérogation : à renseigner si une dérogation existe pour ce contrat",
+          "page": 2,
+          "level": "attention",
+          "rationale": "Le type de contrat ou d'avenant et toute dérogation doivent être renseignés correctement."
+        },
+        {
+          "id": "T03-C02",
+          "title": "Dates d'exécution du contrat",
+          "quote": "Date de début d’exécution du contrat : / / Date de début de formation pratique chez l’employeur : / / Si avenant, date d’effet : / / Date de fin du contrat ou de la période d’apprentissage : / /",
+          "page": 2,
+          "level": "important",
+          "rationale": "Les dates définissent la période contractuelle et doivent être cohérentes entre elles."
+        },
+        {
+          "id": "T03-C03",
+          "title": "Temps de travail et risques particuliers",
+          "quote": "Durée hebdomadaire du travail : heures minutes Travail sur machines dangereuses ou exposition à des risques particuliers : Oui Non",
+          "page": 2,
+          "level": "important",
+          "rationale": "Le temps de travail et l'exposition éventuelle à des risques doivent être explicitement renseignés."
+        },
+        {
+          "id": "T03-C04",
+          "title": "Évolution de la rémunération",
+          "quote": "Rémunération * Indiquer SMIC ou SMC (salaire minimum conventionnel)",
+          "page": 2,
+          "level": "important",
+          "rationale": "La base SMIC ou SMC et les pourcentages applicables à chaque période doivent être complétés."
+        },
+        {
+          "id": "T03-C05",
+          "title": "Avantages en nature",
+          "quote": "Avantages en nature, le cas échéant : Nourriture : , € / repas Logement : , € / mois Autre :",
+          "page": 2,
+          "level": "attention",
+          "rationale": "Les avantages en nature influencent les conditions de rémunération et doivent être chiffrés."
+        },
+        {
+          "id": "T03-C06",
+          "title": "Durée de la formation",
+          "quote": "Date de début de formation en CFA : / / Date prévue de fin des épreuves ou examens : / / Durée de la formation : heures Dont heures de formation à distance",
+          "page": 2,
+          "level": "important",
+          "rationale": "Les dates et volumes de formation doivent correspondre au diplôme préparé et au contrat."
+        }
+      ]
+    }
+  ]
+}
