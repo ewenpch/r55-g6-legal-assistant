@@ -15,9 +15,15 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+bench = [
+    "psutil>=5.9",
+    "pymupdf>=1.24",
+]
 dev = [
     "ruff>=0.6",
     "pytest>=8.3",
+    "psutil>=5.9",
+    "pymupdf>=1.24",
 ]
 
 [tool.hatch.build.targets.wheel]
@@ -35,3 +41,4 @@ extend-immutable-calls = ["fastapi.Depends", "fastapi.Query", "fastapi.Body"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+pythonpath = ["."]
