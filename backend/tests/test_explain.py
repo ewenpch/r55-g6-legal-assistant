@@ -7,7 +7,6 @@ from fastapi.testclient import TestClient
 from app.api.health import get_http_client
 from app.config import Settings, get_settings
 from app.main import app
-from app.services.llm import LEGAL_NOTICE
 
 Handler = Callable[[httpx.Request], httpx.Response]
 KEY = "gsk_secret"
@@ -55,7 +54,7 @@ def test_explain_success_sends_prompt_and_key() -> None:
     response = _post(handler)
 
     assert response.status_code == 200
-    assert response.json() == {"answer": f"En clair : ...\n\n{LEGAL_NOTICE}"}
+    assert response.json() == {"answer": "En clair : ..."}
     assert seen["auth"] == f"Bearer {KEY}"
     assert seen["url"] == "http://llm.test/v1/chat/completions"
     assert "<clause>" in seen["body"]
