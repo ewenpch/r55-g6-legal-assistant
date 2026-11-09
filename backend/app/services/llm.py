@@ -9,6 +9,7 @@ from app.config import BACKEND_DIR, Settings
 PROMPT_PATH = BACKEND_DIR / "prompts" / "explain-clause.md"
 LLM_TIMEOUT = 30.0
 TEMPERATURE = 0.2
+LEGAL_NOTICE = "Cette explication ne constitue pas un conseil juridique."
 
 
 class LLMError(Exception):
@@ -65,4 +66,7 @@ async def explain_clause(client: httpx.AsyncClient, settings: Settings, text: st
         raise LLMError("Réponse inattendue du service d'IA.") from None
     if not isinstance(answer, str) or not answer.strip():
         raise LLMError("Le service d'IA a renvoyé une réponse vide.")
-    return answer.strip()
+    answer = answer.strip()
+    if LEGAL_NOTICE not in answer:
+        answer = f"{answer}\n\n{LEGAL_NOTICE}"
+    return answer

@@ -58,7 +58,7 @@ Les fonctionnalités prévues sont :
 
 Ne font pas partie de la V1 :
 
-- toute fonctionnalité d'IA générative ;
+- l'analyse générative d'un document complet ; l'IA de la V1 se limite à une clause collée volontairement ;
 - l'analyse automatique de la légalité, du risque ou du caractère abusif d'une clause ;
 - le résumé automatique du contrat ;
 - les recommandations juridiques et les références automatiques à la loi ou à la jurisprudence ;
@@ -127,7 +127,7 @@ API locale (FastAPI)
         +-- stockage temporaire en mémoire
 ```
 
-Le navigateur envoie le PDF à l'API locale. Le serveur vérifie le fichier, extrait son texte et renvoie les pages ainsi que les repères détectés. Aucun service distant n'est nécessaire au fonctionnement de la V1.
+Le navigateur envoie le PDF à l'API locale. Le serveur vérifie le fichier, extrait son texte et renvoie les pages ainsi que les repères détectés. Ce parcours PDF ne nécessite aucun service distant ; seule la fonction séparée d'explication de clause appelle Groq.
 
 ## 11. IA envisagée pour la suite
 
