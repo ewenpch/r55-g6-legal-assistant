@@ -143,6 +143,14 @@ npm run dev
 - API : http://localhost:8000
 - Vérification de santé : `GET http://localhost:8000/api/health`
 
+## Déploiement (Vercel)
+
+`vercel.json` déclare deux services dans un même projet : `backend` (FastAPI, dossier `backend/`) et `frontend` (Vite, dossier `frontend/`). Les requêtes `/api/*` vont au backend, tout le reste au frontend ; le navigateur appelle `/api/...` en relatif, sans CORS ni binding. Test local de l'ensemble : `vercel dev`.
+
+Variables d'environnement à définir dans le projet Vercel : `LLM_API_KEY` (secrète), `LLM_BASE_URL`, `LLM_MODEL` et `COOKIE_SECURE=true`.
+
+⚠️ **SQLite n'est pas persistant sur Vercel** : le disque est en lecture seule sauf `/tmp`, qui est éphémère (le fichier `/tmp/app.db` est utilisé automatiquement). Comptes, sessions et historique peuvent disparaître à tout moment : acceptable pour une démo, pas pour la production (il faudrait une base hébergée, par exemple Postgres).
+
 ## Documentation
 
 - [Cahier des charges](docs/CDC.md)
