@@ -129,11 +129,8 @@ Décisions prises lors du découpage, à intégrer au CDC (§7.1 et §9).
 
 ---
 
-## Décision en attente
+## Décision actée
 
-**Repli automatique ou explicite ?** Sur 8 Go, le modèle 3B est plus rapide mais moins fiable : c'est lui qui produit le chiffre de rappel de 70 % (§11.2).
+Le repli est **explicite** : sur une machine 8 Go, le profil utilise `llama3.2:3b`, limite les documents à 6 pages et fixe `num_ctx=2048`. L'interface doit indiquer le modèle réellement chargé et avertir que l'analyse peut être moins complète.
 
-- *Automatique* : l'utilisateur ne voit jamais d'erreur, mais la différence de qualité reste invisible.
-- *Explicite* : l'interface indique le modèle utilisé et avertit que l'analyse est moins précise.
-
-À trancher avant la tâche 12, car le mécanisme de sélection du modèle conditionne le store mémoire et la route de santé.
+Le profil nominal 16 Go conserve `qwen2.5:7b-instruct`, une limite de 10 pages et `num_ctx=4096`. Le benchmark complet et les justifications sont consignés dans `docs/benchmark.md`.
