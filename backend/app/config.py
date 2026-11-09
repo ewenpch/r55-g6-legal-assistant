@@ -1,20 +1,24 @@
 from functools import lru_cache
+from pathlib import Path
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+BACKEND_DIR = Path(__file__).resolve().parent.parent
+
 
 class Settings(BaseSettings):
-    """Configuration du backend, surchargeable via un fichier .env."""
+    """Configuration du backend, surchargeable via backend/.env (jamais commite)."""
 
     model_config = SettingsConfigDict(
-        env_file=".env",
+        env_file=BACKEND_DIR / ".env",
         env_file_encoding="utf-8",
         extra="ignore",
+        env_ignore_empty=True,
     )
 
-    ollama_host: str = "http://localhost:11434"
-    ollama_model: str = "qwen2.5:7b-instruct"
-    ollama_num_ctx: int = 4096
+    llm_base_url: str = "https://api.groq.com/openai/v1"
+    llm_api_key: str = ""
+    llm_model: str = "openai/gpt-oss-20b"
 
 
 @lru_cache
