@@ -1,6 +1,7 @@
 import type { Answer } from '../types'
-import { splitIntoBlocks, tokenize } from '../lib/text'
-import { BookIcon, SealIcon } from './icons'
+import { splitIntoBlocks } from '../lib/text'
+import { Highlighted } from './Highlighted'
+import { BookIcon, ScrollIcon, SealIcon } from './icons'
 import { LegalNotice } from './LegalNotice'
 
 const ACCENTS = ['gold', 'blue', 'seal'] as const
@@ -9,25 +10,6 @@ type Accent = (typeof ACCENTS)[number]
 
 function accentAt(index: number): Accent {
   return ACCENTS[index % ACCENTS.length]
-}
-
-function Highlighted({ text }: { text: string }) {
-  return (
-    <>
-      {tokenize(text).map((segment, index) =>
-        segment.type === 'text' ? (
-          <span key={index}>{segment.value}</span>
-        ) : (
-          <mark
-            className={`answer__token answer__token--${segment.type}`}
-            key={index}
-          >
-            {segment.value}
-          </mark>
-        ),
-      )}
-    </>
-  )
 }
 
 interface AnswerCardProps {
@@ -46,6 +28,18 @@ export function AnswerCard({ answer }: AnswerCardProps) {
         <h2>Explication</h2>
         <span className="answer__tag">Lexi · En clair</span>
       </header>
+
+      {answer.extrait && (
+        <figure className="answer__quote">
+          <figcaption>
+            <ScrollIcon size={14} />
+            Extrait du document
+          </figcaption>
+          <blockquote>
+            <Highlighted text={answer.extrait} />
+          </blockquote>
+        </figure>
+      )}
 
       <div className="answer__explain">
         {blocks.map((block, index) => (

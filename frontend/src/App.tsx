@@ -1,53 +1,34 @@
-import { AnswerCard } from './components/AnswerCard'
+import { AuthPanel } from './components/AuthPanel'
 import { BackgroundFX } from './components/BackgroundFX'
-import { ClauseForm } from './components/ClauseForm'
-import { EmptyState } from './components/EmptyState'
+import { Footer } from './components/Footer'
 import { Header } from './components/Header'
-import { JusticeGavel } from './components/JusticeGavel'
-import { LexiLogo } from './components/LexiLogo'
 import { Loader } from './components/Loader'
-import { ShieldIcon } from './components/icons'
-import { useExplainClause } from './hooks/useExplainClause'
+import { UserBar } from './components/UserBar'
+import { Workspace } from './components/Workspace'
+import { useAuth } from './hooks/useAuth'
 import './App.css'
 
 function App() {
-  const { answer, error, loading, explain } = useExplainClause()
+  const { user, authenticate, logout, expire } = useAuth()
 
   return (
     <>
       <BackgroundFX />
       <div className="app">
+        {user && <UserBar user={user} onLogout={logout} />}
         <Header />
-        <main className="app__main">
-          <section className="panel" aria-label="Saisie de la clause">
-            <ClauseForm loading={loading} error={error} onSubmit={explain} />
-          </section>
-          <div className="app__result" aria-live="polite">
-            <JusticeGavel active={answer !== null} />
-            {loading ? (
-              <Loader />
-            ) : answer ? (
-              <AnswerCard answer={answer} />
-            ) : (
-              <EmptyState />
-            )}
+        {user === undefined ? (
+          <div className="app__center">
+            <Loader />
           </div>
-        </main>
-        <footer className="app__footer">
-          <div className="app__footer-brand">
-            <LexiLogo variant="footer" />
-            <span className="app__footer-tagline">
-              La clarté juridique, sans jargon.
-            </span>
+        ) : user === null ? (
+          <div className="app__center">
+            <AuthPanel onSubmit={authenticate} />
           </div>
-          <div className="app__footer-meta">
-            <p>Propulsé par Groq · openai/gpt-oss-20b</p>
-            <p>
-              <ShieldIcon size={14} />
-              Ceci n’est pas un conseil juridique.
-            </p>
-          </div>
-        </footer>
+        ) : (
+          <Workspace onExpired={expire} />
+        )}
+        <Footer />
       </div>
     </>
   )

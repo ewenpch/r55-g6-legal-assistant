@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import type { FormEvent } from 'react'
+import type { DocumentItem } from '../types'
 import { Alert } from './Alert'
 import { LegalNotice } from './LegalNotice'
 import { GavelIcon, QuillIcon, ShieldIcon } from './icons'
@@ -9,10 +10,17 @@ const MAX_CHARS = 4000
 interface ClauseFormProps {
   loading: boolean
   error: string
+  /** Document sélectionné : le champ devient une demande (« Explique la clause 3 »). */
+  document: DocumentItem | null
   onSubmit: (text: string) => void
 }
 
-export function ClauseForm({ loading, error, onSubmit }: ClauseFormProps) {
+export function ClauseForm({
+  loading,
+  error,
+  document,
+  onSubmit,
+}: ClauseFormProps) {
   const [text, setText] = useState('')
   const nearLimit = MAX_CHARS - text.length <= 200
 
@@ -26,7 +34,9 @@ export function ClauseForm({ loading, error, onSubmit }: ClauseFormProps) {
       <div className="clause-form__head">
         <label htmlFor="clause">
           <QuillIcon size={15} />
-          Clause de contrat
+          {document
+            ? `Votre demande sur « ${document.filename} »`
+            : 'Clause de contrat'}
         </label>
         <span
           className={`clause-form__count${nearLimit ? ' clause-form__count--warn' : ''}`}
@@ -38,11 +48,15 @@ export function ClauseForm({ loading, error, onSubmit }: ClauseFormProps) {
       <div className="clause-form__field">
         <textarea
           id="clause"
-          rows={8}
+          rows={document ? 3 : 8}
           maxLength={MAX_CHARS}
           value={text}
           onChange={(event) => setText(event.target.value)}
-          placeholder="Collez ici une clause de votre contrat…"
+          placeholder={
+            document
+              ? 'Ex. : Explique la clause 3'
+              : 'Collez ici une clause de votre contrat…'
+          }
           disabled={loading}
         />
       </div>
@@ -57,7 +71,7 @@ export function ClauseForm({ loading, error, onSubmit }: ClauseFormProps) {
           ) : (
             <>
               <GavelIcon className="clause-form__gavel" size={18} />
-              Expliquer la clause
+              {document ? 'Poser la question' : 'Expliquer la clause'}
             </>
           )}
         </button>

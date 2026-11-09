@@ -11,9 +11,9 @@ export function LegalNotice({ variant = 'inline' }: LegalNoticeProps) {
         <ShieldIcon size={16} />
       </span>
       <span>
-        Le texte collé est envoyé à un service d’IA externe (Groq). N’y mettez
-        pas de données personnelles. Cette application ne fournit pas de conseil
-        juridique.
+        Le texte saisi et le document sélectionné sont envoyés à un service d’IA
+        externe (Groq) et conservés dans votre compte. N’y mettez pas de données
+        personnelles. Cette application ne fournit pas de conseil juridique.
       </span>
     </p>
   )

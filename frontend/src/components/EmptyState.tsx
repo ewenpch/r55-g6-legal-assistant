@@ -1,7 +1,11 @@
 import { LexiMark } from './LexiMark'
 import { LaurelIcon } from './icons'
 
-export function EmptyState() {
+interface EmptyStateProps {
+  documentName?: string
+}
+
+export function EmptyState({ documentName }: EmptyStateProps) {
   return (
     <section className="empty" aria-label="Aucune analyse">
       <div className="empty__emblem" aria-hidden="true">
@@ -11,7 +15,9 @@ export function EmptyState() {
       </div>
       <p className="empty__title">Votre explication apparaîtra ici</p>
       <p className="empty__hint">
-        Collez une clause : Lexi l’explique en langage clair.
+        {documentName
+          ? `Demandez par exemple « Explique la clause 3 » : Lexi la retrouve dans ${documentName}.`
+          : 'Collez une clause ou déposez un contrat : Lexi l’explique en langage clair.'}
       </p>
     </section>
   )

@@ -21,6 +21,7 @@ class ExplainResult(BaseModel):
 
     en_clair: str
     a_retenir: list[str]
+    extrait: str
 
 
 RESPONSE_FORMAT = {
@@ -55,8 +56,17 @@ def _is_json_generation_failure(response: httpx.Response) -> bool:
         return False
 
 
-async def explain_clause(client: httpx.AsyncClient, settings: Settings, text: str) -> ExplainResult:
-    """Envoie la clause au modèle et renvoie son explication structurée.
+def build_user_message(text: str, document: str | None = None) -> str:
+    """Clause collée, ou demande + document, séparés par des balises (donnée, pas consigne)."""
+    if document is None:
+        return f"<clause>\n{text}\n</clause>"
+    return f"<document>\n{document}\n</document>\n<demande>\n{text}\n</demande>"
+
+
+async def explain_clause(
+    client: httpx.AsyncClient, settings: Settings, text: str, document: str | None = None
+) -> ExplainResult:
+    """Envoie la clause (ou la demande + le document) au modèle ; renvoie l'explication structurée.
 
     Les messages d'erreur ne contiennent jamais la clé ni le texte de l'utilisateur.
     """
@@ -69,7 +79,7 @@ async def explain_clause(client: httpx.AsyncClient, settings: Settings, text: st
         "response_format": RESPONSE_FORMAT,
         "messages": [
             {"role": "system", "content": load_system_prompt()},
-            {"role": "user", "content": f"<clause>\n{text}\n</clause>"},
+            {"role": "user", "content": build_user_message(text, document)},
         ],
     }
     for attempt in range(MAX_ATTEMPTS):
