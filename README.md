@@ -28,11 +28,13 @@ Application d'aide à la compréhension de contrats (bail, travail, abonnement�
 
 ## Fonctionnalités disponibles
 
-- **Expliquer une clause** : l'utilisateur colle une clause, l'IA l'explique en langage clair (voir plus bas).
+- **Expliquer une clause** : l'utilisateur colle une clause, ou sélectionne un PDF déposé et écrit par exemple « Explique la clause 3 » ; l'IA retrouve la clause dans le document et l'explique en langage clair (voir plus bas).
 - **Comptes** : inscription, connexion, déconnexion ; les routes `/api/explain` et `/api/history` exigent d'être connecté (401 sinon) et chaque utilisateur ne voit que son propre historique.
-- **Import PDF** par glisser-déposer ou sélection de fichier.
-- **Validation** du fichier : type, taille ≤ 5 Mo, ≤ 10 pages, texte extractible.
-- **Extraction** du texte page par page avec conservation du numéro de page.
+- **Dépôt de PDF** (`POST /api/documents`) : validation (extension `.pdf`, vrai PDF lisible, ≤ 5 Mo, ≤ 10 pages, texte extractible, pas de mot de passe), un message distinct par cas d'échec ; le fichier et son texte sont conservés par utilisateur et peuvent être listés, relus (`GET /api/documents[/{id}]`) ou supprimés (`DELETE`). Le document déposé se sélectionne pour poser une question dessus (voir « Question sur un document »).
+- **Repères du document, sans IA** (`GET /api/documents/{id}/reperes`) : montants, dates, durées (avec page et contexte) et termes juridiques courants définis en une phrase, détectés par expressions régulières et glossaire fixe.
+- **Recherche dans le document, sans IA** (`GET /api/documents/{id}/search?q=…`) : toutes les occurrences d'un mot ou d'une expression, avec page et extrait.
+- **Journal des appels à l'IA** (`GET /api/llm-logs`) : chaque appel au LLM est enregistré (demande, réponse, durée, modèle, erreur éventuelle) et affiché à l'utilisateur ; la clé n'y figure jamais.
+- **Extraction** du texte page par page avec conservation du numéro de page *(prévu)*.
 - **Détection** du type de contrat et **résumé** en langage clair.
 - **Fiche d'identité** : parties, objet, durée, dates clés, montants.
 - **Obligations** de chaque partie.
@@ -52,6 +54,27 @@ L'utilisateur colle une clause de contrat (4 000 caractères max) et reçoit une
 - Sortie JSON : l'appel envoie `response_format` de type `json_schema` avec `strict: true` (schéma `ExplainResult` dans `llm.py`) ; la réponse est ensuite re-validée avec Pydantic (champs en trop ou manquants → erreur claire). Groq échoue parfois à produire un JSON valide (`json_validate_failed`, ~35 % des essais avec `qwen/qwen3.8-27b`) : le serveur réessaie automatiquement, 3 essais au maximum.
 - Erreurs : message français clair pour clé absente, clé refusée, quota (429), délai dépassé, service injoignable ou réponse inattendue. La clé et le texte de l'utilisateur n'apparaissent jamais dans les erreurs.
 - La clé reste dans `backend/.env` (ignoré par git) ; `backend/.env.example` liste les variables sans valeur.
+
+### Fonctions sans IA (repères et recherche)
+
+Code : `backend/app/services/reperes.py` (fonctions pures) et routes dans `backend/app/api/documents.py`. Elles n'appellent jamais le LLM et marchent sans clé d'API (les tests tournent avec `LLM_API_KEY` vide et sans faux LLM). Test à la main : lancer le backend **sans** `LLM_API_KEY`, déposer un PDF, sélectionner le document : repères et recherche s'affichent. Les repères sont une aide à la lecture, pas une garantie d'exhaustivité (formats de dates ou de montants inhabituels non reconnus).
+
+### Question sur un document
+
+`POST /api/explain` accepte `{"text": "Explique la clause 3", "document_id": 7}`. Le serveur retrouve le document de l'utilisateur (404 si ce n'est pas le sien), puis envoie au LLM le texte complet du PDF entre `<document>` et la demande entre `<demande>` : c'est le modèle qui localise la clause (par son numéro ou son sujet). Un document de plus de 60 000 caractères est refusé (422).
+
+- **Vérification de la citation** : le schéma JSON contient un champ `extrait` (la clause recopiée mot pour mot). Le serveur vérifie qu'il figure bien dans le document (espaces et casse ignorés) et l'écarte sinon ; l'interface l'affiche en citation au-dessus de l'explication.
+- Clause introuvable (« clause 9 ») : le modèle le dit sans rien inventer, `extrait` est vide.
+- Le journal et l'historique ne gardent que `[nom.pdf] demande`, pas le document entier.
+- Sans `document_id`, le mode « clause collée » est inchangé.
+
+### Journal des appels au LLM
+
+Table `llm_logs` (SQLite) : à chaque `POST /api/explain`, succès ou échec, une ligne `user_id, model, request, response, error, duration_ms, created_at` est écrite par `_log_call` (`backend/app/api/explain.py`). Test : utiliser l'explication puis ouvrir « Journal des appels à l'IA » dans l'interface, ou `sqlite3 backend/data/app.db "select model, duration_ms, error from llm_logs"`. Le journal contient le texte soumis : il est filtré par utilisateur et n'est jamais écrit dans les journaux techniques du serveur.
+
+### Dépôt de fichier (PDF)
+
+Code : `backend/app/api/documents.py` (PyMuPDF pour l'extraction). Codes d'erreur : 400 (pas `.pdf`, faux PDF, illisible, protégé), 413 (> 5 Mo), 422 (> 10 pages, aucun texte extractible), 401 (non connecté). Sur Vercel, le corps d'une requête est limité (~4,5 Mo) : les PDF plus gros y seront refusés.
 
 ### Authentification
 
