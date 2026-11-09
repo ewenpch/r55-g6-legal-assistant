@@ -30,9 +30,9 @@ Application d'aide à la compréhension de contrats (bail, travail, abonnement�
 
 - **Expliquer une clause** : l'utilisateur colle une clause, l'IA l'explique en langage clair (voir plus bas).
 - **Comptes** : inscription, connexion, déconnexion ; les routes `/api/explain` et `/api/history` exigent d'être connecté (401 sinon) et chaque utilisateur ne voit que son propre historique.
-- **Import PDF** par glisser-déposer ou sélection de fichier.
-- **Validation** du fichier : type, taille ≤ 5 Mo, ≤ 10 pages, texte extractible.
-- **Extraction** du texte page par page avec conservation du numéro de page.
+- **Dépôt de PDF** (`POST /api/documents`) : validation (extension `.pdf`, vrai PDF lisible, ≤ 5 Mo, ≤ 10 pages, texte extractible, pas de mot de passe), un message distinct par cas d'échec ; le fichier et son texte sont conservés par utilisateur et peuvent être listés, relus (`GET /api/documents[/{id}]`) ou supprimés (`DELETE`). Un bouton « Utiliser le texte » envoie le texte du PDF (4 000 premiers caractères) vers l'explication de clause.
+- **Journal des appels à l'IA** (`GET /api/llm-logs`) : chaque appel au LLM est enregistré (demande, réponse, durée, modèle, erreur éventuelle) et affiché à l'utilisateur ; la clé n'y figure jamais.
+- **Extraction** du texte page par page avec conservation du numéro de page *(prévu)*.
 - **Détection** du type de contrat et **résumé** en langage clair.
 - **Fiche d'identité** : parties, objet, durée, dates clés, montants.
 - **Obligations** de chaque partie.
@@ -52,6 +52,14 @@ L'utilisateur colle une clause de contrat (4 000 caractères max) et reçoit une
 - Sortie JSON : l'appel envoie `response_format` de type `json_schema` avec `strict: true` (schéma `ExplainResult` dans `llm.py`) ; la réponse est ensuite re-validée avec Pydantic (champs en trop ou manquants → erreur claire). Groq échoue parfois à produire un JSON valide (`json_validate_failed`, ~35 % des essais avec `qwen/qwen3.8-27b`) : le serveur réessaie automatiquement, 3 essais au maximum.
 - Erreurs : message français clair pour clé absente, clé refusée, quota (429), délai dépassé, service injoignable ou réponse inattendue. La clé et le texte de l'utilisateur n'apparaissent jamais dans les erreurs.
 - La clé reste dans `backend/.env` (ignoré par git) ; `backend/.env.example` liste les variables sans valeur.
+
+### Journal des appels au LLM
+
+Table `llm_logs` (SQLite) : à chaque `POST /api/explain`, succès ou échec, une ligne `user_id, model, request, response, error, duration_ms, created_at` est écrite par `_log_call` (`backend/app/api/explain.py`). Test : utiliser l'explication puis ouvrir « Journal des appels à l'IA » dans l'interface, ou `sqlite3 backend/data/app.db "select model, duration_ms, error from llm_logs"`. Le journal contient le texte soumis : il est filtré par utilisateur et n'est jamais écrit dans les journaux techniques du serveur.
+
+### Dépôt de fichier (PDF)
+
+Code : `backend/app/api/documents.py` (PyMuPDF pour l'extraction). Codes d'erreur : 400 (pas `.pdf`, faux PDF, illisible, protégé), 413 (> 5 Mo), 422 (> 10 pages, aucun texte extractible), 401 (non connecté). Sur Vercel, le corps d'une requête est limité (~4,5 Mo) : les PDF plus gros y seront refusés.
 
 ### Authentification
 

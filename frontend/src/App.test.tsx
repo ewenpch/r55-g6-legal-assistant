@@ -123,4 +123,27 @@ describe('App', () => {
       expect.anything(),
     )
   })
+
+  it('uploads a PDF and shows the server error when it is rejected', async () => {
+    const fetchMock = mockApi({
+      ...SIGNED_IN,
+      '/api/documents': {
+        status: 422,
+        body: {
+          detail: 'Aucun texte extractible : ce PDF est peut-être un scan.',
+        },
+      },
+    })
+    render(<App />)
+
+    const input = await screen.findByLabelText(/Déposer un PDF/)
+    const file = new File(['%PDF-1.4'], 'scan.pdf', { type: 'application/pdf' })
+    fireEvent.change(input, { target: { files: [file] } })
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('Aucun texte')
+    expect(fetchMock).toHaveBeenCalledWith(
+      '/api/documents',
+      expect.objectContaining({ method: 'POST', body: expect.any(FormData) }),
+    )
+  })
 })

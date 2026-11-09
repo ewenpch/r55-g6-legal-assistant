@@ -28,6 +28,28 @@ CREATE TABLE IF NOT EXISTS explanations (
     a_retenir TEXT NOT NULL,
     created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
+CREATE TABLE IF NOT EXISTS llm_logs (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    model TEXT NOT NULL,
+    request TEXT NOT NULL,
+    response TEXT,
+    error TEXT,
+    duration_ms INTEGER NOT NULL,
+    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+CREATE TABLE IF NOT EXISTS documents (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    filename TEXT NOT NULL,
+    size INTEGER NOT NULL,
+    pages INTEGER NOT NULL,
+    text TEXT NOT NULL,
+    content BLOB NOT NULL,
+    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+CREATE INDEX IF NOT EXISTS idx_llm_logs_user ON llm_logs(user_id, id);
+CREATE INDEX IF NOT EXISTS idx_documents_user ON documents(user_id, id);
 CREATE INDEX IF NOT EXISTS idx_explanations_user ON explanations(user_id, id);
 """
 
