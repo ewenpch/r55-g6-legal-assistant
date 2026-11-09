@@ -1,19 +1,19 @@
 import { useEffect, useState } from 'react'
 import { errorMessage } from './api'
 
-interface DocumentItem {
+export interface DocumentItem {
   id: number
   filename: string
   pages: number
   size: number
 }
 
-const MAX_CLAUSE_CHARS = 4000
-
 export default function DocumentsSection({
-  onUse,
+  selectedId,
+  onSelect,
 }: {
-  onUse: (text: string) => void
+  selectedId: number | null
+  onSelect: (doc: DocumentItem | null) => void
 }) {
   const [documents, setDocuments] = useState<DocumentItem[]>([])
   const [refresh, setRefresh] = useState(0)
@@ -44,6 +44,7 @@ export default function DocumentsSection({
         setError(await errorMessage(response))
         return
       }
+      onSelect(await response.json()) // le document déposé est sélectionné
       setRefresh((n) => n + 1)
     } catch {
       setError('Impossible de joindre le serveur. Vérifiez qu’il est démarré.')
@@ -53,21 +54,11 @@ export default function DocumentsSection({
     }
   }
 
-  async function use(id: number) {
-    setError('')
-    const response = await fetch(`/api/documents/${id}`).catch(() => null)
-    if (!response?.ok) {
-      setError('Document introuvable.')
-      return
-    }
-    const data = await response.json()
-    onUse(String(data.text).slice(0, MAX_CLAUSE_CHARS))
-  }
-
   async function remove(id: number) {
     await fetch(`/api/documents/${id}`, { method: 'DELETE' }).catch(
       () => undefined,
     )
+    if (id === selectedId) onSelect(null)
     setRefresh((n) => n + 1)
   }
 
@@ -91,16 +82,26 @@ export default function DocumentsSection({
       <ul>
         {documents.map((doc) => (
           <li key={doc.id}>
-            {doc.filename} ({doc.pages} p., {Math.ceil(doc.size / 1024)} Ko){' '}
-            <button type="button" onClick={() => use(doc.id)}>
-              Utiliser le texte
-            </button>{' '}
+            <label>
+              <input
+                type="radio"
+                name="document"
+                checked={doc.id === selectedId}
+                onChange={() => onSelect(doc)}
+              />{' '}
+              {doc.filename} ({doc.pages} p., {Math.ceil(doc.size / 1024)} Ko)
+            </label>{' '}
             <button type="button" onClick={() => remove(doc.id)}>
               Supprimer
             </button>
           </li>
         ))}
       </ul>
+      {selectedId !== null && (
+        <button type="button" className="link" onClick={() => onSelect(null)}>
+          Ne plus utiliser de document (coller une clause)
+        </button>
+      )}
     </section>
   )
 }

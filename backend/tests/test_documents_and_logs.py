@@ -10,7 +10,7 @@ from app.api.health import get_http_client
 from app.config import Settings, get_settings
 from app.main import app
 
-CONTENT = '{"en_clair": "Explication.", "a_retenir": ["Point"]}'
+CONTENT = '{"en_clair": "Explication.", "a_retenir": ["Point"], "extrait": ""}'
 CLAUSE = "Le preneur paie le loyer le 5."
 STATE = {"status": 200}  # statut renvoyé par le faux LLM
 

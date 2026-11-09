@@ -146,4 +146,50 @@ describe('App', () => {
       expect.objectContaining({ method: 'POST', body: expect.any(FormData) }),
     )
   })
+
+  it('asks a question about the uploaded document and shows the quote', async () => {
+    const doc = { id: 7, filename: 'bail.pdf', pages: 2, size: 2048 }
+    const fetchMock = vi.fn((url: string, init?: RequestInit) => {
+      const json = (status: number, body: unknown) =>
+        Promise.resolve({
+          ok: status < 400,
+          status,
+          json: () => Promise.resolve(body),
+        })
+      if (url === '/api/auth/me') return json(200, USER)
+      if (url === '/api/history') return json(200, [])
+      if (url === '/api/documents' && init?.method === 'POST')
+        return json(201, doc)
+      if (url === '/api/documents') return json(200, [doc])
+      if (url === '/api/explain')
+        return json(200, {
+          ...ANSWER,
+          extrait: 'Article 3 - Le loyer est dû le 5.',
+        })
+      return json(404, {})
+    })
+    vi.stubGlobal('fetch', fetchMock)
+    render(<App />)
+
+    const file = new File(['%PDF-1.4'], 'bail.pdf', { type: 'application/pdf' })
+    fireEvent.change(await screen.findByLabelText(/Déposer un PDF/), {
+      target: { files: [file] },
+    })
+    fireEvent.change(
+      await screen.findByLabelText(/Votre demande sur « bail.pdf »/),
+      {
+        target: { value: 'Explique la clause 3' },
+      },
+    )
+    fireEvent.click(screen.getByRole('button', { name: 'Expliquer' }))
+
+    expect(
+      await screen.findByText('Article 3 - Le loyer est dû le 5.'),
+    ).toBeInTheDocument()
+    const call = fetchMock.mock.calls.find(([url]) => url === '/api/explain')
+    expect(JSON.parse(String(call?.[1]?.body))).toEqual({
+      text: 'Explique la clause 3',
+      document_id: 7,
+    })
+  })
 })

@@ -10,7 +10,7 @@ from app.main import app
 
 Handler = Callable[[httpx.Request], httpx.Response]
 KEY = "gsk_secret"
-CONTENT = '{"en_clair": "Vous payez le 5.", "a_retenir": ["Date : le 5"]}'
+CONTENT = '{"en_clair": "Vous payez le 5.", "a_retenir": ["Date : le 5"], "extrait": ""}'
 TEXT = "Le preneur s'engage à payer le loyer le 5 de chaque mois."
 
 
@@ -60,7 +60,11 @@ def test_explain_success_sends_prompt_and_key() -> None:
     response = _post(handler)
 
     assert response.status_code == 200
-    assert response.json() == {"en_clair": "Vous payez le 5.", "a_retenir": ["Date : le 5"]}
+    assert response.json() == {
+        "en_clair": "Vous payez le 5.",
+        "a_retenir": ["Date : le 5"],
+        "extrait": "",
+    }
     assert '"strict":true' in seen["body"].replace(" ", "")
     assert seen["auth"] == f"Bearer {KEY}"
     assert seen["url"] == "http://llm.test/v1/chat/completions"
