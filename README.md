@@ -31,6 +31,8 @@ Application d'aide à la compréhension de contrats (bail, travail, abonnement�
 - **Expliquer une clause** : l'utilisateur colle une clause, ou sélectionne un PDF déposé et écrit par exemple « Explique la clause 3 » ; l'IA retrouve la clause dans le document et l'explique en langage clair (voir plus bas).
 - **Comptes** : inscription, connexion, déconnexion ; les routes `/api/explain` et `/api/history` exigent d'être connecté (401 sinon) et chaque utilisateur ne voit que son propre historique.
 - **Dépôt de PDF** (`POST /api/documents`) : validation (extension `.pdf`, vrai PDF lisible, ≤ 5 Mo, ≤ 10 pages, texte extractible, pas de mot de passe), un message distinct par cas d'échec ; le fichier et son texte sont conservés par utilisateur et peuvent être listés, relus (`GET /api/documents[/{id}]`) ou supprimés (`DELETE`). Le document déposé se sélectionne pour poser une question dessus (voir « Question sur un document »).
+- **Repères du document, sans IA** (`GET /api/documents/{id}/reperes`) : montants, dates, durées (avec page et contexte) et termes juridiques courants définis en une phrase, détectés par expressions régulières et glossaire fixe.
+- **Recherche dans le document, sans IA** (`GET /api/documents/{id}/search?q=…`) : toutes les occurrences d'un mot ou d'une expression, avec page et extrait.
 - **Journal des appels à l'IA** (`GET /api/llm-logs`) : chaque appel au LLM est enregistré (demande, réponse, durée, modèle, erreur éventuelle) et affiché à l'utilisateur ; la clé n'y figure jamais.
 - **Extraction** du texte page par page avec conservation du numéro de page *(prévu)*.
 - **Détection** du type de contrat et **résumé** en langage clair.
@@ -52,6 +54,10 @@ L'utilisateur colle une clause de contrat (4 000 caractères max) et reçoit une
 - Sortie JSON : l'appel envoie `response_format` de type `json_schema` avec `strict: true` (schéma `ExplainResult` dans `llm.py`) ; la réponse est ensuite re-validée avec Pydantic (champs en trop ou manquants → erreur claire). Groq échoue parfois à produire un JSON valide (`json_validate_failed`, ~35 % des essais avec `qwen/qwen3.8-27b`) : le serveur réessaie automatiquement, 3 essais au maximum.
 - Erreurs : message français clair pour clé absente, clé refusée, quota (429), délai dépassé, service injoignable ou réponse inattendue. La clé et le texte de l'utilisateur n'apparaissent jamais dans les erreurs.
 - La clé reste dans `backend/.env` (ignoré par git) ; `backend/.env.example` liste les variables sans valeur.
+
+### Fonctions sans IA (repères et recherche)
+
+Code : `backend/app/services/reperes.py` (fonctions pures) et routes dans `backend/app/api/documents.py`. Elles n'appellent jamais le LLM et marchent sans clé d'API (les tests tournent avec `LLM_API_KEY` vide et sans faux LLM). Test à la main : lancer le backend **sans** `LLM_API_KEY`, déposer un PDF, sélectionner le document : repères et recherche s'affichent. Les repères sont une aide à la lecture, pas une garantie d'exhaustivité (formats de dates ou de montants inhabituels non reconnus).
 
 ### Question sur un document
 

@@ -1,11 +1,12 @@
 """Dépôt de PDF : validation, extraction du texte page par page, conservation par utilisateur."""
 
 import pymupdf
-from fastapi import APIRouter, HTTPException, UploadFile
+from fastapi import APIRouter, HTTPException, Query, UploadFile
 from pydantic import BaseModel
 
 from app.api.auth import CurrentUser
 from app.db import Db
+from app.services import reperes
 
 router = APIRouter(prefix="/api/documents", tags=["documents"])
 
@@ -93,6 +94,33 @@ def get_document(document_id: int, user: CurrentUser, db: Db) -> DocumentDetail:
     if row is None:
         raise HTTPException(status_code=404, detail="Document introuvable.")
     return DocumentDetail(**dict(row))
+
+
+def _pages_of(document_id: int, user: CurrentUser, db: Db) -> list[str]:
+    row = db.execute(
+        "SELECT content FROM documents WHERE id = ? AND user_id = ?", (document_id, user.id)
+    ).fetchone()
+    if row is None:
+        raise HTTPException(status_code=404, detail="Document introuvable.")
+    return reperes.extract_pages(row["content"])
+
+
+@router.get("/{document_id}/reperes")
+def get_reperes(document_id: int, user: CurrentUser, db: Db) -> dict[str, list[dict]]:
+    """Montants, dates, durées et termes juridiques du document, sans IA."""
+    return reperes.find_reperes(_pages_of(document_id, user, db))
+
+
+@router.get("/{document_id}/search")
+def search_document(
+    document_id: int,
+    user: CurrentUser,
+    db: Db,
+    q: str = Query(min_length=2, max_length=100),
+) -> dict:
+    """Recherche d'un mot ou d'une expression dans le document, sans IA."""
+    total, hits = reperes.search(_pages_of(document_id, user, db), q.strip())
+    return {"q": q.strip(), "total": total, "resultats": hits}
 
 
 @router.delete("/{document_id}", status_code=204)
