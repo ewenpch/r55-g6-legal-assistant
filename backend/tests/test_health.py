@@ -37,3 +37,13 @@ def test_health_degraded_without_key() -> None:
 
     assert data["status"] == "degraded"
     assert data["llm"]["configured"] is False
+
+
+def test_empty_env_values_fall_back_to_defaults(tmp_path) -> None:
+    env = tmp_path / ".env"
+    env.write_text("LLM_BASE_URL=\nLLM_API_KEY=\nLLM_MODEL=\n", encoding="utf-8")
+
+    settings = Settings(_env_file=env)
+
+    assert settings.llm_base_url == "https://api.groq.com/openai/v1"
+    assert settings.llm_model == "openai/gpt-oss-20b"

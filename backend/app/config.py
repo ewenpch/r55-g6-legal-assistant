@@ -13,6 +13,7 @@ class Settings(BaseSettings):
         env_file=BACKEND_DIR / ".env",
         env_file_encoding="utf-8",
         extra="ignore",
+        env_ignore_empty=True,
     )
 
     llm_base_url: str = "https://api.groq.com/openai/v1"
