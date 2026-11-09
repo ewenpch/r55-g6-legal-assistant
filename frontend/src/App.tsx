@@ -1,28 +1,37 @@
-import { useCallback, useEffect, useState } from 'react'
+import { AuthPanel } from './components/AuthPanel'
+import { BackgroundFX } from './components/BackgroundFX'
+import { Footer } from './components/Footer'
+import { Header } from './components/Header'
+import { Loader } from './components/Loader'
+import { UserBar } from './components/UserBar'
+import { Workspace } from './components/Workspace'
+import { useAuth } from './hooks/useAuth'
 import './App.css'
-import AuthForm, { type User } from './AuthForm'
-import ExplainPage from './ExplainPage'
 
 function App() {
-  // undefined = vérification en cours, null = non connecté
-  const [user, setUser] = useState<User | null | undefined>(undefined)
+  const { user, authenticate, logout, expire } = useAuth()
 
-  useEffect(() => {
-    fetch('/api/auth/me')
-      .then((response) => (response.ok ? response.json() : null))
-      .then(setUser)
-      .catch(() => setUser(null))
-  }, [])
-
-  const logout = useCallback(async () => {
-    await fetch('/api/auth/logout', { method: 'POST' }).catch(() => undefined)
-    setUser(null)
-  }, [])
-  const expired = useCallback(() => setUser(null), [])
-
-  if (user === undefined) return <p className="notice">Chargement…</p>
-  if (user === null) return <AuthForm onLogin={setUser} />
-  return <ExplainPage user={user} onLogout={logout} onExpired={expired} />
+  return (
+    <>
+      <BackgroundFX />
+      <div className="app">
+        {user && <UserBar user={user} onLogout={logout} />}
+        <Header />
+        {user === undefined ? (
+          <div className="app__center">
+            <Loader />
+          </div>
+        ) : user === null ? (
+          <div className="app__center">
+            <AuthPanel onSubmit={authenticate} />
+          </div>
+        ) : (
+          <Workspace onExpired={expire} />
+        )}
+        <Footer />
+      </div>
+    </>
+  )
 }
 
 export default App

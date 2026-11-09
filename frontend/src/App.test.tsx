@@ -1,16 +1,20 @@
-import { fireEvent, render, screen } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import App from './App'
 
-type Route = { status: number; body: unknown }
+type Reply = { status: number; body?: unknown }
+type Routes = Record<string, Reply>
 
-function mockApi(routes: Record<string, Route>) {
-  const fn = vi.fn((url: string) => {
-    const route = routes[url] ?? { status: 404, body: {} }
+/** Simule l'API : clé « URL » ou « MÉTHODE URL » (la plus spécifique l'emporte). */
+function mockApi(routes: Routes) {
+  const fn = vi.fn((url: string, init?: RequestInit) => {
+    const method = init?.method ?? 'GET'
+    const exact = routes[`${method} ${url}`] ?? routes[url]
+    const reply = exact ?? { status: 404, body: {} }
     return Promise.resolve({
-      ok: route.status < 400,
-      status: route.status,
-      json: () => Promise.resolve(route.body),
+      ok: reply.status < 400,
+      status: reply.status,
+      json: () => Promise.resolve(reply.body ?? {}),
     })
   })
   vi.stubGlobal('fetch', fn)
@@ -18,197 +22,188 @@ function mockApi(routes: Record<string, Route>) {
 }
 
 const USER = { id: 1, email: 'a@b.fr' }
+const DOC = { id: 7, filename: 'bail.pdf', pages: 2, size: 2048 }
 const ANSWER = {
-  en_clair: 'En clair : vous payez le 5.',
-  a_retenir: ['Date : le 5'],
+  en_clair: 'Vous payez le loyer avant le 5 de chaque mois.',
+  a_retenir: ['Date limite : le 5'],
 }
-const SIGNED_IN = {
+const SIGNED_IN: Routes = {
   '/api/auth/me': { status: 200, body: USER },
   '/api/history': { status: 200, body: [] },
+  '/api/llm-logs': { status: 200, body: [] },
+  '/api/documents': { status: 200, body: [] },
+  '/api/health': { status: 200, body: { llm: { model: 'test-model' } } },
+}
+
+async function ask(text: string, label: string | RegExp = 'Clause de contrat') {
+  fireEvent.change(await screen.findByLabelText(label), {
+    target: { value: text },
+  })
+  fireEvent.click(screen.getByRole('button', { name: /Expliquer|Poser/ }))
+}
+
+async function upload() {
+  const file = new File(['%PDF-1.4'], 'bail.pdf', { type: 'application/pdf' })
+  fireEvent.change(await screen.findByLabelText(/Déposer un PDF/), {
+    target: { files: [file] },
+  })
 }
 
 describe('App', () => {
   afterEach(() => vi.unstubAllGlobals())
 
-  it('shows the login form when not signed in', async () => {
-    mockApi({ '/api/auth/me': { status: 401, body: {} } })
-    render(<App />)
+  describe('authentification', () => {
+    it('affiche la connexion quand on n’est pas connecté', async () => {
+      mockApi({ '/api/auth/me': { status: 401 } })
+      render(<App />)
 
-    expect(
-      await screen.findByRole('heading', { name: 'Connexion' }),
-    ).toBeInTheDocument()
-    expect(screen.queryByLabelText('Clause de contrat')).not.toBeInTheDocument()
-  })
-
-  it('shows the server error when login fails', async () => {
-    mockApi({
-      '/api/auth/me': { status: 401, body: {} },
-      '/api/auth/login': {
-        status: 401,
-        body: { detail: 'E-mail ou mot de passe incorrect.' },
-      },
+      expect(
+        await screen.findByRole('heading', { name: 'Connexion' }),
+      ).toBeInTheDocument()
+      expect(
+        screen.queryByLabelText('Clause de contrat'),
+      ).not.toBeInTheDocument()
     })
-    render(<App />)
 
-    fireEvent.change(await screen.findByLabelText('Adresse e-mail'), {
-      target: { value: 'a@b.fr' },
-    })
-    fireEvent.change(screen.getByLabelText('Mot de passe'), {
-      target: { value: 'mauvais' },
-    })
-    fireEvent.click(screen.getByRole('button', { name: 'Se connecter' }))
-
-    expect(await screen.findByRole('alert')).toHaveTextContent('incorrect')
-  })
-
-  it('goes back to the login form after logout', async () => {
-    mockApi({ ...SIGNED_IN, '/api/auth/logout': { status: 204, body: {} } })
-    render(<App />)
-
-    fireEvent.click(
-      await screen.findByRole('button', { name: 'Se déconnecter' }),
-    )
-
-    expect(
-      await screen.findByRole('heading', { name: 'Connexion' }),
-    ).toBeInTheDocument()
-  })
-
-  it('shows the explanation when signed in', async () => {
-    const fetchMock = mockApi({
-      ...SIGNED_IN,
-      '/api/explain': { status: 200, body: ANSWER },
-    })
-    render(<App />)
-
-    fireEvent.change(await screen.findByLabelText('Clause de contrat'), {
-      target: { value: 'Loyer' },
-    })
-    fireEvent.click(screen.getByRole('button', { name: 'Expliquer' }))
-
-    expect(await screen.findByText(/vous payez le 5/)).toBeInTheDocument()
-    expect(fetchMock).toHaveBeenCalledWith(
-      '/api/explain',
-      expect.objectContaining({ method: 'POST' }),
-    )
-  })
-
-  it('shows a clear message when the AI call fails', async () => {
-    mockApi({
-      ...SIGNED_IN,
-      '/api/explain': {
-        status: 504,
-        body: { detail: 'Le service d’IA a mis trop de temps.' },
-      },
-    })
-    render(<App />)
-
-    fireEvent.change(await screen.findByLabelText('Clause de contrat'), {
-      target: { value: 'Loyer' },
-    })
-    fireEvent.click(screen.getByRole('button', { name: 'Expliquer' }))
-
-    expect(await screen.findByRole('alert')).toHaveTextContent('trop de temps')
-  })
-
-  it('does not call the server when the field is empty', async () => {
-    const fetchMock = mockApi(SIGNED_IN)
-    render(<App />)
-
-    fireEvent.click(await screen.findByRole('button', { name: 'Expliquer' }))
-
-    expect(await screen.findByRole('alert')).toBeInTheDocument()
-    expect(fetchMock).not.toHaveBeenCalledWith(
-      '/api/explain',
-      expect.anything(),
-    )
-  })
-
-  it('uploads a PDF and shows the server error when it is rejected', async () => {
-    const fetchMock = mockApi({
-      ...SIGNED_IN,
-      '/api/documents': {
-        status: 422,
-        body: {
-          detail: 'Aucun texte extractible : ce PDF est peut-être un scan.',
+    it('affiche l’erreur du serveur quand la connexion échoue', async () => {
+      mockApi({
+        '/api/auth/me': { status: 401 },
+        '/api/auth/login': {
+          status: 401,
+          body: { detail: 'E-mail ou mot de passe incorrect.' },
         },
-      },
+      })
+      render(<App />)
+
+      fireEvent.change(await screen.findByLabelText('Adresse e-mail'), {
+        target: { value: 'a@b.fr' },
+      })
+      fireEvent.change(screen.getByLabelText('Mot de passe'), {
+        target: { value: 'mauvais' },
+      })
+      fireEvent.click(screen.getByRole('button', { name: 'Se connecter' }))
+
+      expect(await screen.findByRole('alert')).toHaveTextContent('incorrect')
     })
-    render(<App />)
 
-    const input = await screen.findByLabelText(/Déposer un PDF/)
-    const file = new File(['%PDF-1.4'], 'scan.pdf', { type: 'application/pdf' })
-    fireEvent.change(input, { target: { files: [file] } })
+    it('ouvre l’espace de travail après une connexion réussie', async () => {
+      mockApi({
+        ...SIGNED_IN,
+        '/api/auth/me': { status: 401 },
+        '/api/auth/login': { status: 200, body: USER },
+      })
+      render(<App />)
 
-    expect(await screen.findByRole('alert')).toHaveTextContent('Aucun texte')
-    expect(fetchMock).toHaveBeenCalledWith(
-      '/api/documents',
-      expect.objectContaining({ method: 'POST', body: expect.any(FormData) }),
-    )
+      fireEvent.change(await screen.findByLabelText('Adresse e-mail'), {
+        target: { value: 'a@b.fr' },
+      })
+      fireEvent.change(screen.getByLabelText('Mot de passe'), {
+        target: { value: 'motdepasse1' },
+      })
+      fireEvent.click(screen.getByRole('button', { name: 'Se connecter' }))
+
+      expect(
+        await screen.findByLabelText('Clause de contrat'),
+      ).toBeInTheDocument()
+      expect(screen.getByText('a@b.fr')).toBeInTheDocument()
+    })
+
+    it('revient à la connexion après la déconnexion', async () => {
+      mockApi({ ...SIGNED_IN, '/api/auth/logout': { status: 204 } })
+      render(<App />)
+
+      fireEvent.click(
+        await screen.findByRole('button', { name: /Se déconnecter/ }),
+      )
+
+      expect(
+        await screen.findByRole('heading', { name: 'Connexion' }),
+      ).toBeInTheDocument()
+    })
+
+    it('revient à la connexion quand la session expire', async () => {
+      mockApi({ ...SIGNED_IN, '/api/explain': { status: 401 } })
+      render(<App />)
+
+      await ask('Loyer')
+
+      expect(
+        await screen.findByRole('heading', { name: 'Connexion' }),
+      ).toBeInTheDocument()
+    })
   })
 
-  it('asks a question about the uploaded document and shows the quote', async () => {
-    const doc = { id: 7, filename: 'bail.pdf', pages: 2, size: 2048 }
-    const fetchMock = vi.fn((url: string, init?: RequestInit) => {
-      const json = (status: number, body: unknown) =>
-        Promise.resolve({
-          ok: status < 400,
-          status,
-          json: () => Promise.resolve(body),
-        })
-      if (url === '/api/auth/me') return json(200, USER)
-      if (url === '/api/history') return json(200, [])
-      if (url === '/api/documents' && init?.method === 'POST')
-        return json(201, doc)
-      if (url === '/api/documents') return json(200, [doc])
-      if (url === '/api/explain')
-        return json(200, {
-          ...ANSWER,
-          extrait: 'Article 3 - Le loyer est dû le 5.',
-        })
-      return json(404, {})
-    })
-    vi.stubGlobal('fetch', fetchMock)
-    render(<App />)
+  describe('explication d’une clause', () => {
+    it('affiche l’explication et déclenche le marteau', async () => {
+      const fetchMock = mockApi({
+        ...SIGNED_IN,
+        '/api/explain': { status: 200, body: ANSWER },
+      })
+      const { container } = render(<App />)
 
-    const file = new File(['%PDF-1.4'], 'bail.pdf', { type: 'application/pdf' })
-    fireEvent.change(await screen.findByLabelText(/Déposer un PDF/), {
-      target: { files: [file] },
-    })
-    fireEvent.change(
-      await screen.findByLabelText(/Votre demande sur « bail.pdf »/),
-      {
-        target: { value: 'Explique la clause 3' },
-      },
-    )
-    fireEvent.click(screen.getByRole('button', { name: 'Expliquer' }))
+      await ask('Loyer')
 
-    expect(
-      await screen.findByText('Article 3 - Le loyer est dû le 5.'),
-    ).toBeInTheDocument()
-    const call = fetchMock.mock.calls.find(([url]) => url === '/api/explain')
-    expect(JSON.parse(String(call?.[1]?.body))).toEqual({
-      text: 'Explique la clause 3',
-      document_id: 7,
+      expect(await screen.findByText(/Vous payez le loyer/)).toBeInTheDocument()
+      expect(screen.getByText('Date limite : le 5')).toBeInTheDocument()
+      expect(fetchMock).toHaveBeenCalledWith(
+        '/api/explain',
+        expect.objectContaining({ method: 'POST' }),
+      )
+      const gavel = container.querySelector<HTMLElement>('.gavel')
+      await waitFor(() => expect(gavel).toHaveClass('gavel--striking'))
+    })
+
+    it('affiche un message clair quand l’appel à l’IA échoue', async () => {
+      mockApi({
+        ...SIGNED_IN,
+        '/api/explain': {
+          status: 504,
+          body: { detail: 'Le service d’IA a mis trop de temps.' },
+        },
+      })
+      const { container } = render(<App />)
+
+      await ask('Loyer')
+
+      expect(await screen.findByRole('alert')).toHaveTextContent(
+        'trop de temps',
+      )
+      expect(container.querySelector('.gavel')).not.toHaveClass(
+        'gavel--striking',
+      )
+    })
+
+    it('n’appelle pas le serveur quand le champ est vide', async () => {
+      const fetchMock = mockApi(SIGNED_IN)
+      render(<App />)
+
+      fireEvent.click(await screen.findByRole('button', { name: /Expliquer/ }))
+
+      expect(await screen.findByRole('alert')).toBeInTheDocument()
+      expect(fetchMock).not.toHaveBeenCalledWith(
+        '/api/explain',
+        expect.anything(),
+      )
+    })
+
+    it('affiche le modèle réellement configuré dans le pied de page', async () => {
+      mockApi(SIGNED_IN)
+      render(<App />)
+
+      expect(
+        await screen.findByText(/Propulsé par Groq · test-model/),
+      ).toBeInTheDocument()
     })
   })
 
-  it('shows repères and search results for the selected document without AI', async () => {
-    const doc = { id: 7, filename: 'bail.pdf', pages: 2, size: 2048 }
-    const fetchMock = vi.fn((url: string, init?: RequestInit) => {
-      const json = (status: number, body: unknown) =>
-        Promise.resolve({
-          ok: status < 400,
-          status,
-          json: () => Promise.resolve(body),
-        })
-      if (url === '/api/auth/me') return json(200, USER)
-      if (url === '/api/history') return json(200, [])
-      if (url === '/api/documents' && init?.method === 'POST')
-        return json(201, doc)
-      if (url === '/api/documents') return json(200, [doc])
-      if (url === '/api/documents/7/reperes')
-        return json(200, {
+  describe('documents', () => {
+    const WITH_DOCUMENT: Routes = {
+      ...SIGNED_IN,
+      '/api/documents': { status: 200, body: [DOC] },
+      'POST /api/documents': { status: 201, body: DOC },
+      '/api/documents/7/reperes': {
+        status: 200,
+        body: {
           montants: [
             { texte: '650 euros', page: 2, contexte: 'dépôt de 650 euros' },
           ],
@@ -217,41 +212,124 @@ describe('App', () => {
           termes: [
             { terme: 'préavis', definition: 'Délai avant la fin.', pages: [2] },
           ],
-        })
-      if (url.startsWith('/api/documents/7/search'))
-        return json(200, {
+        },
+      },
+      '/api/documents/7/search?q=pr%C3%A9avis': {
+        status: 200,
+        body: {
           q: 'préavis',
           total: 1,
           resultats: [{ page: 2, extrait: 'Le préavis est de 3 mois' }],
-        })
-      return json(404, {})
-    })
-    vi.stubGlobal('fetch', fetchMock)
-    render(<App />)
-
-    fireEvent.change(await screen.findByLabelText(/Déposer un PDF/), {
-      target: {
-        files: [
-          new File(['%PDF-1.4'], 'bail.pdf', { type: 'application/pdf' }),
-        ],
+        },
       },
+    }
+
+    it('affiche l’erreur du serveur quand le PDF est refusé', async () => {
+      mockApi({
+        ...SIGNED_IN,
+        'POST /api/documents': {
+          status: 422,
+          body: {
+            detail: 'Aucun texte extractible : ce PDF est peut-être un scan.',
+          },
+        },
+      })
+      render(<App />)
+
+      await upload()
+
+      expect(await screen.findByRole('alert')).toHaveTextContent('Aucun texte')
     })
 
-    expect(await screen.findByText('650 euros')).toBeInTheDocument()
-    expect(
-      screen.getByText('Délai avant la fin.', { exact: false }),
-    ).toBeInTheDocument()
+    it('pose une question sur le document déposé et cite l’extrait', async () => {
+      const fetchMock = mockApi({
+        ...WITH_DOCUMENT,
+        '/api/explain': {
+          status: 200,
+          body: { ...ANSWER, extrait: 'Article 3 - Le loyer est dû le 5.' },
+        },
+      })
+      render(<App />)
 
-    fireEvent.change(screen.getByLabelText('Rechercher dans le document'), {
-      target: { value: 'préavis' },
+      await upload()
+      await ask('Explique la clause 3', /Votre demande sur « bail.pdf »/)
+
+      expect(await screen.findByText('Extrait du document')).toBeInTheDocument()
+      expect(
+        await screen.findByText(/Article 3 - Le loyer est dû le 5\./),
+      ).toBeInTheDocument()
+      const call = fetchMock.mock.calls.find(([url]) => url === '/api/explain')
+      expect(JSON.parse(String(call?.[1]?.body))).toEqual({
+        text: 'Explique la clause 3',
+        document_id: 7,
+      })
     })
-    fireEvent.click(screen.getByRole('button', { name: 'Rechercher' }))
 
-    expect(await screen.findByText(/1 résultat\(s\)/)).toBeInTheDocument()
-    expect(screen.getByText(/Le préavis est de 3 mois/)).toBeInTheDocument()
-    expect(fetchMock).not.toHaveBeenCalledWith(
-      '/api/explain',
-      expect.anything(),
-    )
+    it('montre les repères et la recherche sans appeler l’IA', async () => {
+      const fetchMock = mockApi(WITH_DOCUMENT)
+      render(<App />)
+
+      await upload()
+
+      expect(await screen.findByText('650 euros')).toBeInTheDocument()
+      expect(screen.getByText('Délai avant la fin.')).toBeInTheDocument()
+
+      fireEvent.change(screen.getByLabelText('Rechercher dans le document'), {
+        target: { value: 'préavis' },
+      })
+      fireEvent.click(screen.getByRole('button', { name: 'Rechercher' }))
+
+      expect(await screen.findByText(/1 résultat\(s\)/)).toBeInTheDocument()
+      expect(screen.getByText(/Le préavis est de 3 mois/)).toBeInTheDocument()
+      expect(fetchMock).not.toHaveBeenCalledWith(
+        '/api/explain',
+        expect.anything(),
+      )
+    })
+  })
+
+  describe('suivi', () => {
+    it('affiche l’historique et le journal des appels', async () => {
+      mockApi({
+        ...SIGNED_IN,
+        '/api/history': {
+          status: 200,
+          body: [
+            {
+              id: 1,
+              clause: 'Le loyer est dû le 5.',
+              en_clair: 'Payez le 5.',
+              a_retenir: [],
+            },
+          ],
+        },
+        '/api/llm-logs': {
+          status: 200,
+          body: [
+            {
+              id: 1,
+              model: 'm',
+              duration_ms: 464,
+              error: null,
+              created_at: '2026-11-09 14:55:00',
+            },
+            {
+              id: 2,
+              model: 'm',
+              duration_ms: 12,
+              error: 'Trop de requêtes',
+              created_at: '2026-11-09 14:56:00',
+            },
+          ],
+        },
+      })
+      render(<App />)
+
+      expect(
+        await screen.findByText('Le loyer est dû le 5.'),
+      ).toBeInTheDocument()
+      expect(await screen.findByText(/464 ms/)).toBeInTheDocument()
+      expect(screen.getByText('Trop de requêtes')).toBeInTheDocument()
+    })
   })
 })
