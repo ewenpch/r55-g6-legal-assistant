@@ -10,6 +10,7 @@ from app.main import app
 
 Handler = Callable[[httpx.Request], httpx.Response]
 KEY = "gsk_secret"
+CONTENT = '{"en_clair": "Vous payez le 5.", "a_retenir": ["Date : le 5"]}'
 TEXT = "Le preneur s'engage à payer le loyer le 5 de chaque mois."
 
 
@@ -48,17 +49,17 @@ def test_explain_success_sends_prompt_and_key() -> None:
         seen["url"] = str(request.url)
         seen["body"] = request.content.decode()
         return httpx.Response(
-            200, json={"choices": [{"message": {"content": " En clair : ... "}}]}, request=request
+            200, json={"choices": [{"message": {"content": CONTENT}}]}, request=request
         )
 
     response = _post(handler)
 
     assert response.status_code == 200
-    assert response.json() == {"answer": "En clair : ..."}
+    assert response.json() == {"en_clair": "Vous payez le 5.", "a_retenir": ["Date : le 5"]}
+    assert '"strict":true' in seen["body"].replace(" ", "")
     assert seen["auth"] == f"Bearer {KEY}"
     assert seen["url"] == "http://llm.test/v1/chat/completions"
     assert "<clause>" in seen["body"]
-    assert "response_format" not in seen["body"]
 
 
 @pytest.mark.parametrize(("status", "expected"), [(401, 502), (429, 429), (500, 502)])
@@ -110,3 +111,44 @@ def test_explain_rejects_empty_input(text: str) -> None:
 
 def test_explain_rejects_too_long_input() -> None:
     assert _post(_no_call, text="a" * 4001).status_code == 422
+
+
+@pytest.mark.parametrize(
+    "content",
+    ["pas du json", '{"en_clair": "x"}', '{"en_clair": "x", "a_retenir": [], "extra": 1}'],
+)
+def test_explain_rejects_malformed_model_output(content: str) -> None:
+    body = {"choices": [{"message": {"content": content}}]}
+
+    response = _post(lambda r: httpx.Response(200, json=body, request=r))
+
+    assert response.status_code == 502
+    assert "mal formée" in response.json()["detail"]
+
+
+def _json_failure(request: httpx.Request) -> httpx.Response:
+    return httpx.Response(400, json={"error": {"code": "json_validate_failed"}}, request=request)
+
+
+def test_explain_retries_on_json_generation_failure() -> None:
+    calls: list[int] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        calls.append(1)
+        if len(calls) == 1:
+            return _json_failure(request)
+        return httpx.Response(
+            200, json={"choices": [{"message": {"content": CONTENT}}]}, request=request
+        )
+
+    response = _post(handler)
+
+    assert response.status_code == 200
+    assert len(calls) == 2
+
+
+def test_explain_gives_up_after_repeated_json_failures() -> None:
+    response = _post(_json_failure)
+
+    assert response.status_code == 502
+    assert "réponse valide" in response.json()["detail"]

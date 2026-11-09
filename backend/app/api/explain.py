@@ -28,7 +28,8 @@ class ExplainRequest(BaseModel):
 
 
 class ExplainResponse(BaseModel):
-    answer: str
+    en_clair: str
+    a_retenir: list[str]
 
 
 @router.post("/explain")
@@ -38,6 +39,7 @@ async def explain(
     settings: Annotated[Settings, Depends(get_settings)],
 ) -> ExplainResponse:
     try:
-        return ExplainResponse(answer=await explain_clause(client, settings, body.text))
+        result = await explain_clause(client, settings, body.text)
+        return ExplainResponse(en_clair=result.en_clair, a_retenir=result.a_retenir)
     except LLMError as exc:
         raise HTTPException(status_code=exc.status_code, detail=exc.message) from None

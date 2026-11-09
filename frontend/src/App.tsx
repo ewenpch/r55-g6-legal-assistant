@@ -1,15 +1,20 @@
 import { useState } from 'react'
 import './App.css'
 
+interface Answer {
+  en_clair: string
+  a_retenir: string[]
+}
+
 function App() {
   const [text, setText] = useState('')
-  const [answer, setAnswer] = useState('')
+  const [answer, setAnswer] = useState<Answer | null>(null)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
   async function handleSubmit(event: React.FormEvent) {
     event.preventDefault()
-    setAnswer('')
+    setAnswer(null)
     setError('')
     if (!text.trim()) {
       setError('Collez une clause à expliquer.')
@@ -30,7 +35,7 @@ function App() {
         setError(detail || `Erreur du serveur (${response.status}).`)
         return
       }
-      setAnswer(data.answer)
+      setAnswer(data)
     } catch {
       setError('Impossible de joindre le serveur. Vérifiez qu’il est démarré.')
     } finally {
@@ -66,7 +71,20 @@ function App() {
       {answer && (
         <section aria-label="Explication" className="answer">
           <h2>Explication</h2>
-          <p>{answer}</p>
+          <p>{answer.en_clair}</p>
+          {answer.a_retenir.length > 0 && (
+            <>
+              <h3>À retenir</h3>
+              <ul>
+                {answer.a_retenir.map((point) => (
+                  <li key={point}>{point}</li>
+                ))}
+              </ul>
+            </>
+          )}
+          <p className="notice">
+            Cette explication ne constitue pas un conseil juridique.
+          </p>
         </section>
       )}
     </main>
