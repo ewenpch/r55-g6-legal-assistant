@@ -17,7 +17,7 @@ La V1 est un outil d'aide à la lecture. Elle ne produit ni analyse juridique, n
 
 Les contrats sont souvent longs et emploient un vocabulaire difficile à comprendre pour une personne non juriste. Les dates, montants, durées et clauses importantes peuvent être difficiles à retrouver rapidement.
 
-L'application doit faciliter la navigation dans le document et l'identification de ces éléments, sans transmettre le contrat à un service externe. Elle ne remplace pas l'avis d'un professionnel du droit.
+L'application doit faciliter la navigation dans le document et l'identification de ces éléments, sans transmettre le contrat complet à un service externe ; seule la clause que l'utilisateur colle volontairement est envoyée à l'IA (§11). Elle ne remplace pas l'avis d'un professionnel du droit.
 
 ## 3. Utilisateurs cibles
 
@@ -131,14 +131,14 @@ Le navigateur envoie le PDF à l'API locale. Le serveur vérifie le fichier, ext
 
 ## 11. IA envisagée pour la suite
 
-Dans une version future seulement, un modèle de langage exécuté localement pourrait produire un résumé en langage clair et suggérer des clauses à vérifier, avec citation obligatoire du texte source et avertissement explicite sur les limites de l'analyse.
+Une première fonctionnalité d'IA est disponible : l'utilisateur colle une clause de contrat (texte en entrée) et reçoit une explication en langage clair (texte en sortie). Le modèle est appelé depuis le serveur via l'API Groq (`openai/gpt-oss-20b`) ; la clé d'API reste dans `backend/.env`, jamais sur GitHub. Le texte collé quitte donc la machine pour Groq, ce que l'interface signale. Plus tard, le modèle pourra produire un résumé et suggérer des clauses à vérifier, avec citation obligatoire du texte source et avertissement explicite sur les limites de l'analyse.
 
 ## 12. Contraintes
 
-- La V1 doit fonctionner sans IA générative et sans API externe.
+- Le parcours d'import PDF doit fonctionner sans IA ; la fonctionnalité d'IA (explication d'une clause) utilise l'API Groq depuis le serveur.
 - Seuls les PDF textuels en français, de 10 pages et 5 Mo maximum, sont acceptés.
 - Les documents scannés ne sont pas pris en charge.
-- Le document et le texte extrait ne doivent pas quitter la machine de l'utilisateur.
+- Le document et le texte extrait ne doivent pas quitter la machine de l'utilisateur, à l'exception de la clause que l'utilisateur soumet explicitement à l'IA.
 - L'application ne conserve ni compte ni historique et ne nécessite pas de base de données.
 - Le parcours principal doit rester utilisable sur ordinateur et mobile, au clavier comme à la souris.
 - Les textes et contrastes doivent respecter les principes de base de l'accessibilité web.
