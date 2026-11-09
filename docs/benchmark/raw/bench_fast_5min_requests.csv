@@ -1,0 +1,5 @@
+run_id,model,num_ctx,pages,repeat,chunk_index,chunk_count,page_start,page_end,approx_chunk_tokens,prompt_chars,load_duration_ms,prompt_eval_count,prompt_eval_duration_ms,eval_count,eval_duration_ms,total_duration_ms,client_wall_ms,prefill_tok_s,gen_tok_s,json_valid,response_chars,done_reason,error
+qwen2.5_7b-instruct_ctx2048_p6_r1,qwen2.5:7b-instruct,2048,6,1,1,1,1,1,589,3445,17369.2,991,34262.7,64,14219.8,65901.2,65906.6,28.92,4.5,False,238,length,
+qwen2.5_7b-instruct_ctx4096_p6_r1,qwen2.5:7b-instruct,4096,6,1,1,1,1,1,589,3445,7692.4,991,34297.0,64,14275.8,56305.1,56343.1,28.89,4.48,False,221,length,
+llama3.2_3b_ctx2048_p6_r1,llama3.2:3b,2048,6,1,1,1,1,1,589,3437,8642.9,958,14980.3,64,8606.7,32259.6,32400.4,63.95,7.44,False,225,length,
+llama3.2_3b_ctx4096_p6_r1,llama3.2:3b,4096,6,1,1,1,1,1,589,3437,3166.4,958,14889.5,64,8095.5,26162.1,26213.7,64.34,7.91,False,225,length,

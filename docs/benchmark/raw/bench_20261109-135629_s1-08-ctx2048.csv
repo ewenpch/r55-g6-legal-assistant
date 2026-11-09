@@ -1,0 +1,5 @@
+model,num_ctx,pages,contract,repeat,load_s,chunks,chunks_done,chunk_budget_tokens,prompt_tokens,gen_tokens,prefill_s,gen_s,prefill_tok_s,gen_tok_s,wall_s,within_budget,prompt_tokens_per_page,chars_per_token,json_valid,length_stops,context_overflows,reloads,rss_peak_mb,load_rss_peak_mb,proc_swap_peak_mb,swap_out_delta_mb,swap_used_delta_mb,ram_available_min_mb,swap,swap_reasons,error
+qwen2.5:7b-instruct,2048,6,bail-habitation,1,23.779,6,6,1120,7171,3072,21.8,55.942,328.94,54.91,78.452,True,1195.2,3.36,0,6,0,0,1296.0,1118.5,,0.0,0.0,19334.6,non,,
+qwen2.5:7b-instruct,2048,10,bail-habitation,1,23.779,11,11,1120,12287,5240,5.485,83.558,2240.11,62.71,90.198,True,1228.7,3.37,2,9,0,0,2262.4,1118.5,,0.0,0.0,18340.0,non,,
+llama3.2:3b,2048,6,bail-habitation,1,13.055,6,6,1120,7181,2379,8.044,20.616,892.72,115.4,29.537,True,1196.8,3.35,5,1,0,0,1734.2,973.8,,0.0,0.0,18816.0,non,,
+llama3.2:3b,2048,10,bail-habitation,1,13.055,11,11,1120,12388,4426,2.912,38.58,4254.12,114.72,43.074,True,1238.8,3.34,7,4,0,0,3590.2,973.8,,0.0,0.0,17018.0,non,,
