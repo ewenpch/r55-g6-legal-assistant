@@ -1,4 +1,6 @@
 import json
+import sqlite3
+import time
 from typing import Annotated
 
 import httpx
@@ -36,6 +38,35 @@ class ExplainResponse(BaseModel):
     a_retenir: list[str]
 
 
+class LogItem(BaseModel):
+    id: int
+    model: str
+    request: str
+    response: str | None
+    error: str | None
+    duration_ms: int
+    created_at: str
+
+
+def _log_call(
+    db: sqlite3.Connection,
+    user_id: int,
+    model: str,
+    request: str,
+    response: str | None,
+    error: str | None,
+    started: float,
+) -> None:
+    """Journal des appels au LLM : demande, réponse, durée, erreur éventuelle (jamais la clé)."""
+    duration_ms = round((time.perf_counter() - started) * 1000)
+    db.execute(
+        "INSERT INTO llm_logs (user_id, model, request, response, error, duration_ms)"
+        " VALUES (?, ?, ?, ?, ?, ?)",
+        (user_id, model, request, response, error, duration_ms),
+    )
+    db.commit()
+
+
 class HistoryItem(ExplainResponse):
     id: int
     clause: str
@@ -50,10 +81,13 @@ async def explain(
     client: Annotated[httpx.AsyncClient, Depends(get_http_client)],
     settings: Annotated[Settings, Depends(get_settings)],
 ) -> ExplainResponse:
+    started = time.perf_counter()
     try:
         result = await explain_clause(client, settings, body.text)
     except LLMError as exc:
+        _log_call(db, user.id, settings.llm_model, body.text, None, exc.message, started)
         raise HTTPException(status_code=exc.status_code, detail=exc.message) from None
+    _log_call(db, user.id, settings.llm_model, body.text, result.model_dump_json(), None, started)
     db.execute(
         "INSERT INTO explanations (user_id, clause, en_clair, a_retenir) VALUES (?, ?, ?, ?)",
         (user.id, body.text, result.en_clair, json.dumps(result.a_retenir, ensure_ascii=False)),
@@ -79,3 +113,14 @@ def history(user: CurrentUser, db: Db) -> list[HistoryItem]:
         )
         for r in rows
     ]
+
+
+@router.get("/llm-logs")
+def llm_logs(user: CurrentUser, db: Db) -> list[LogItem]:
+    """Journal des appels au LLM de l'utilisateur connecté uniquement."""
+    rows = db.execute(
+        "SELECT id, model, request, response, error, duration_ms, created_at FROM llm_logs"
+        " WHERE user_id = ? ORDER BY id DESC LIMIT ?",
+        (user.id, HISTORY_LIMIT),
+    ).fetchall()
+    return [LogItem(**dict(row)) for row in rows]

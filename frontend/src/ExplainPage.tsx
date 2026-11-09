@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react'
 import type { User } from './AuthForm'
+import DocumentsSection from './DocumentsSection'
+import LogsSection from './LogsSection'
 import { errorMessage } from './api'
 
 interface Answer {
@@ -77,11 +79,11 @@ export default function ExplainPage({
         return
       }
       setAnswer(await response.json())
-      setRefresh((n) => n + 1)
     } catch {
       setError('Impossible de joindre le serveur. Vérifiez qu’il est démarré.')
     } finally {
       setLoading(false)
+      setRefresh((n) => n + 1) // recharge historique et journal
     }
   }
 
@@ -126,6 +128,7 @@ export default function ExplainPage({
           </p>
         </section>
       )}
+      <DocumentsSection onUse={setText} />
       {history.length > 0 && (
         <section aria-label="Historique" className="history">
           <h2>Mon historique</h2>
@@ -137,6 +140,7 @@ export default function ExplainPage({
           ))}
         </section>
       )}
+      <LogsSection refreshKey={refresh} />
     </main>
   )
 }
