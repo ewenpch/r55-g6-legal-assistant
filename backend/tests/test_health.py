@@ -1,66 +1,39 @@
-from collections.abc import AsyncIterator, Callable
-
-import httpx
 import pytest
 from fastapi.testclient import TestClient
 
-from app.api.health import get_http_client
 from app.config import Settings, get_settings
 from app.main import app
 
-Handler = Callable[[httpx.Request], httpx.Response]
-
-
-def _override_client(handler: Handler):
-    async def _client() -> AsyncIterator[httpx.AsyncClient]:
-        async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as client:
-            yield client
-
-    return _client
-
 
 @pytest.fixture(autouse=True)
-def _reset_dependencies() -> AsyncIterator[None]:
-    app.dependency_overrides[get_settings] = lambda: Settings(
-        ollama_host="http://ollama.test",
-        ollama_model="test-model",
-    )
+def _reset_dependencies():
     yield
     app.dependency_overrides.clear()
 
 
-def test_health_ok_when_ollama_reachable() -> None:
-    def handler(request: httpx.Request) -> httpx.Response:
-        return httpx.Response(
-            200,
-            json={"models": [{"name": "qwen2.5:7b-instruct"}]},
-            request=request,
-        )
+def _settings(**kwargs) -> Settings:
+    return Settings(_env_file=None, llm_model="test-model", **kwargs)
 
-    app.dependency_overrides[get_http_client] = _override_client(handler)
+
+def test_health_ok_when_key_configured() -> None:
+    app.dependency_overrides[get_settings] = lambda: _settings(llm_api_key="gsk_secret")
 
     with TestClient(app) as client:
         response = client.get("/api/health")
 
-    assert response.status_code == 200
     data = response.json()
+    assert response.status_code == 200
     assert data["status"] == "ok"
-    assert data["ollama"]["reachable"] is True
-    assert data["ollama"]["model"] == "test-model"
-    assert data["ollama"]["loaded_models"] == ["qwen2.5:7b-instruct"]
+    assert data["llm"]["configured"] is True
+    assert data["llm"]["model"] == "test-model"
+    assert "gsk_secret" not in response.text
 
 
-def test_health_degraded_when_ollama_unreachable() -> None:
-    def handler(request: httpx.Request) -> httpx.Response:
-        raise httpx.ConnectError("connection refused", request=request)
-
-    app.dependency_overrides[get_http_client] = _override_client(handler)
+def test_health_degraded_without_key() -> None:
+    app.dependency_overrides[get_settings] = lambda: _settings()
 
     with TestClient(app) as client:
-        response = client.get("/api/health")
+        data = client.get("/api/health").json()
 
-    assert response.status_code == 200
-    data = response.json()
     assert data["status"] == "degraded"
-    assert data["ollama"]["reachable"] is False
-    assert "error" in data["ollama"]
+    assert data["llm"]["configured"] is False
