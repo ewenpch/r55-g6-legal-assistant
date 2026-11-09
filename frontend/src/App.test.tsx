@@ -192,4 +192,66 @@ describe('App', () => {
       document_id: 7,
     })
   })
+
+  it('shows repères and search results for the selected document without AI', async () => {
+    const doc = { id: 7, filename: 'bail.pdf', pages: 2, size: 2048 }
+    const fetchMock = vi.fn((url: string, init?: RequestInit) => {
+      const json = (status: number, body: unknown) =>
+        Promise.resolve({
+          ok: status < 400,
+          status,
+          json: () => Promise.resolve(body),
+        })
+      if (url === '/api/auth/me') return json(200, USER)
+      if (url === '/api/history') return json(200, [])
+      if (url === '/api/documents' && init?.method === 'POST')
+        return json(201, doc)
+      if (url === '/api/documents') return json(200, [doc])
+      if (url === '/api/documents/7/reperes')
+        return json(200, {
+          montants: [
+            { texte: '650 euros', page: 2, contexte: 'dépôt de 650 euros' },
+          ],
+          dates: [],
+          durees: [{ texte: '3 mois', page: 2, contexte: 'préavis de 3 mois' }],
+          termes: [
+            { terme: 'préavis', definition: 'Délai avant la fin.', pages: [2] },
+          ],
+        })
+      if (url.startsWith('/api/documents/7/search'))
+        return json(200, {
+          q: 'préavis',
+          total: 1,
+          resultats: [{ page: 2, extrait: 'Le préavis est de 3 mois' }],
+        })
+      return json(404, {})
+    })
+    vi.stubGlobal('fetch', fetchMock)
+    render(<App />)
+
+    fireEvent.change(await screen.findByLabelText(/Déposer un PDF/), {
+      target: {
+        files: [
+          new File(['%PDF-1.4'], 'bail.pdf', { type: 'application/pdf' }),
+        ],
+      },
+    })
+
+    expect(await screen.findByText('650 euros')).toBeInTheDocument()
+    expect(
+      screen.getByText('Délai avant la fin.', { exact: false }),
+    ).toBeInTheDocument()
+
+    fireEvent.change(screen.getByLabelText('Rechercher dans le document'), {
+      target: { value: 'préavis' },
+    })
+    fireEvent.click(screen.getByRole('button', { name: 'Rechercher' }))
+
+    expect(await screen.findByText(/1 résultat\(s\)/)).toBeInTheDocument()
+    expect(screen.getByText(/Le préavis est de 3 mois/)).toBeInTheDocument()
+    expect(fetchMock).not.toHaveBeenCalledWith(
+      '/api/explain',
+      expect.anything(),
+    )
+  })
 })

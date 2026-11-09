@@ -113,3 +113,20 @@
   font-style: italic;
   white-space: pre-wrap;
 }
+
+.explain .tools {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  .context {
+    font-size: 0.85em;
+    opacity: 0.8;
+  }
+
+  form {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+}

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import type { User } from './AuthForm'
+import DocumentTools from './DocumentTools'
 import DocumentsSection, { type DocumentItem } from './DocumentsSection'
 import LogsSection from './LogsSection'
 import { errorMessage } from './api'
@@ -114,6 +115,7 @@ export default function ExplainPage({
         selectedId={document?.id ?? null}
         onSelect={setDocument}
       />
+      {document && <DocumentTools key={document.id} documentId={document.id} />}
       <form onSubmit={handleSubmit}>
         <label htmlFor="clause">
           {document
