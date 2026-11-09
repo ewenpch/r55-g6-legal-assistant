@@ -20,6 +20,10 @@ class Settings(BaseSettings):
     llm_api_key: str = ""
     llm_model: str = "openai/gpt-oss-20b"
 
+    database_path: Path = BACKEND_DIR / "data" / "app.db"
+    # Mettre COOKIE_SECURE=true derrière HTTPS.
+    cookie_secure: bool = False
+
 
 @lru_cache
 def get_settings() -> Settings:

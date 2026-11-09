@@ -21,13 +21,15 @@ Application d'aide à la compréhension de contrats (bail, travail, abonnement�
 | Backend | Python / FastAPI, validation Pydantic |
 | Extraction PDF | PyMuPDF (ou pdfplumber) |
 | LLM | API Groq (compatible OpenAI), `openai/gpt-oss-20b`, appelée côté serveur |
-| Stockage | Mémoire du processus (TTL, pas de base de données) |
+| Stockage | SQLite (`backend/data/app.db`, ignoré par git) : comptes, sessions, historique |
+| Authentification | Mots de passe hachés avec bcrypt, session par cookie `HttpOnly` |
 | Tests | pytest (backend), Vitest (frontend) |
 | Qualité | Ruff, ESLint, Prettier |
 
 ## Fonctionnalités disponibles
 
 - **Expliquer une clause** : l'utilisateur colle une clause, l'IA l'explique en langage clair (voir plus bas).
+- **Comptes** : inscription, connexion, déconnexion ; les routes `/api/explain` et `/api/history` exigent d'être connecté (401 sinon) et chaque utilisateur ne voit que son propre historique.
 - **Import PDF** par glisser-déposer ou sélection de fichier.
 - **Validation** du fichier : type, taille ≤ 5 Mo, ≤ 10 pages, texte extractible.
 - **Extraction** du texte page par page avec conservation du numéro de page.
@@ -50,6 +52,15 @@ L'utilisateur colle une clause de contrat (4 000 caractères max) et reçoit une
 - Sortie JSON : l'appel envoie `response_format` de type `json_schema` avec `strict: true` (schéma `ExplainResult` dans `llm.py`) ; la réponse est ensuite re-validée avec Pydantic (champs en trop ou manquants → erreur claire). Groq échoue parfois à produire un JSON valide (`json_validate_failed`, ~35 % des essais avec `qwen/qwen3.8-27b`) : le serveur réessaie automatiquement, 3 essais au maximum.
 - Erreurs : message français clair pour clé absente, clé refusée, quota (429), délai dépassé, service injoignable ou réponse inattendue. La clé et le texte de l'utilisateur n'apparaissent jamais dans les erreurs.
 - La clé reste dans `backend/.env` (ignoré par git) ; `backend/.env.example` liste les variables sans valeur.
+
+### Authentification
+
+- Routes : `POST /api/auth/register`, `POST /api/auth/login`, `POST /api/auth/logout`, `GET /api/auth/me` (code dans `backend/app/api/auth.py`).
+- **Mots de passe** : hachés avec bcrypt (sel intégré, coût 12), jamais stockés en clair. Vérification : `sqlite3 backend/data/app.db "select email, password_hash from users"` → hash en `$2b$12$…`. Longueur : 8 caractères min, 72 octets max (limite de bcrypt).
+- **Session** : jeton aléatoire envoyé dans un cookie `HttpOnly` + `SameSite=Lax` (`Secure` avec `COOKIE_SECURE=true` derrière HTTPS). Seul son hash SHA-256 est stocké en base ; valable 7 jours ; la déconnexion le supprime côté serveur.
+- **Pages protégées** : la dépendance `current_user` renvoie 401 sans session valide ; l'interface revient alors à l'écran de connexion. L'historique est filtré par `user_id` côté serveur.
+- Message de connexion identique pour « e-mail inconnu » et « mauvais mot de passe » (pas d'énumération de comptes).
+- Limites connues (projet étudiant) : pas de limitation du nombre d'essais, pas de réinitialisation du mot de passe.
 
 ### Résultats des 4 cas de test
 
