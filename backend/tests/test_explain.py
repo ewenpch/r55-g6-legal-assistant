@@ -27,9 +27,13 @@ def _no_call(request: httpx.Request) -> httpx.Response:
 
 
 @pytest.fixture(autouse=True)
-def _setup():
+def _setup(tmp_path):
     app.dependency_overrides[get_settings] = lambda: Settings(
-        _env_file=None, llm_base_url="http://llm.test/v1", llm_api_key=KEY, llm_model="m"
+        _env_file=None,
+        llm_base_url="http://llm.test/v1",
+        llm_api_key=KEY,
+        llm_model="m",
+        database_path=tmp_path / "test.db",
     )
     yield
     app.dependency_overrides.clear()
@@ -38,6 +42,7 @@ def _setup():
 def _post(handler: Handler, text: str = TEXT):
     app.dependency_overrides[get_http_client] = _override_client(handler)
     with TestClient(app) as client:
+        client.post("/api/auth/register", json={"email": "a@b.fr", "password": "motdepasse1"})
         return client.post("/api/explain", json={"text": text})
 
 
@@ -95,8 +100,10 @@ def test_explain_unexpected_payload() -> None:
     assert response.status_code == 502
 
 
-def test_explain_missing_key() -> None:
-    app.dependency_overrides[get_settings] = lambda: Settings(_env_file=None)
+def test_explain_missing_key(tmp_path) -> None:
+    app.dependency_overrides[get_settings] = lambda: Settings(
+        _env_file=None, database_path=tmp_path / "test.db"
+    )
 
     response = _post(_no_call)
 

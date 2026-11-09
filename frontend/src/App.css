@@ -59,3 +59,31 @@
     white-space: pre-wrap;
   }
 }
+
+.explain {
+  input {
+    font: inherit;
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: inherit;
+  }
+
+  .topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .link {
+    background: none;
+    text-decoration: underline;
+    padding: 0;
+  }
+
+  .history details {
+    margin-bottom: 8px;
+  }
+}

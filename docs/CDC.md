@@ -139,7 +139,7 @@ Une première fonctionnalité d'IA est disponible : l'utilisateur colle une clau
 - Seuls les PDF textuels en français, de 10 pages et 5 Mo maximum, sont acceptés.
 - Les documents scannés ne sont pas pris en charge.
 - Le document et le texte extrait ne doivent pas quitter la machine de l'utilisateur, à l'exception de la clause que l'utilisateur soumet explicitement à l'IA.
-- L'application ne conserve ni compte ni historique et ne nécessite pas de base de données.
+- L'application gère des comptes (e-mail et mot de passe haché avec bcrypt) et conserve, par utilisateur, l'historique des clauses expliquées dans une base SQLite locale. Un utilisateur ne voit jamais les données d'un autre. Le contenu des clauses ne doit jamais apparaître dans les journaux techniques.
 - Le parcours principal doit rester utilisable sur ordinateur et mobile, au clavier comme à la souris.
 - Les textes et contrastes doivent respecter les principes de base de l'accessibilité web.
 - Un avertissement visible doit rappeler que l'application ne fournit pas de conseil juridique et que les repères affichés peuvent être incomplets.
