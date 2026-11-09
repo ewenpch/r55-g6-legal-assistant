@@ -10,7 +10,7 @@ from app.config import Settings, get_settings
 from app.main import app
 
 PASSWORD = "motdepasse1"
-CONTENT = '{"en_clair": "Explication.", "a_retenir": ["Point"]}'
+CONTENT = '{"en_clair": "Explication.", "a_retenir": ["Point"], "extrait": ""}'
 
 
 @pytest.fixture

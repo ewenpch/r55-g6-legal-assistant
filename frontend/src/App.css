@@ -104,3 +104,12 @@
     font-size: 0.85em;
   }
 }
+
+.explain .quote {
+  margin: 0;
+  padding: 8px 12px;
+  border-left: 3px solid var(--accent);
+  background: var(--accent-bg);
+  font-style: italic;
+  white-space: pre-wrap;
+}
