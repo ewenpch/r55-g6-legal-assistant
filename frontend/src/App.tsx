@@ -1,93 +1,55 @@
-import { useState } from 'react'
+import { AnswerCard } from './components/AnswerCard'
+import { BackgroundFX } from './components/BackgroundFX'
+import { ClauseForm } from './components/ClauseForm'
+import { EmptyState } from './components/EmptyState'
+import { Header } from './components/Header'
+import { JusticeGavel } from './components/JusticeGavel'
+import { LexiLogo } from './components/LexiLogo'
+import { Loader } from './components/Loader'
+import { ShieldIcon } from './components/icons'
+import { useExplainClause } from './hooks/useExplainClause'
 import './App.css'
 
-interface Answer {
-  en_clair: string
-  a_retenir: string[]
-}
-
 function App() {
-  const [text, setText] = useState('')
-  const [answer, setAnswer] = useState<Answer | null>(null)
-  const [error, setError] = useState('')
-  const [loading, setLoading] = useState(false)
-
-  async function handleSubmit(event: React.FormEvent) {
-    event.preventDefault()
-    setAnswer(null)
-    setError('')
-    if (!text.trim()) {
-      setError('Collez une clause à expliquer.')
-      return
-    }
-    setLoading(true)
-    try {
-      const response = await fetch('/api/explain', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text }),
-      })
-      const data = await response.json().catch(() => ({}))
-      if (!response.ok) {
-        const detail = Array.isArray(data.detail)
-          ? data.detail[0]?.msg?.replace(/^Value error, /, '')
-          : data.detail
-        setError(detail || `Erreur du serveur (${response.status}).`)
-        return
-      }
-      setAnswer(data)
-    } catch {
-      setError('Impossible de joindre le serveur. Vérifiez qu’il est démarré.')
-    } finally {
-      setLoading(false)
-    }
-  }
+  const { answer, error, loading, explain } = useExplainClause()
 
   return (
-    <main className="explain">
-      <h1>Expliquer une clause</h1>
-      <p className="notice">
-        Le texte collé est envoyé à un service d’IA externe (Groq). N’y mettez
-        pas de données personnelles. Ceci n’est pas un conseil juridique.
-      </p>
-      <form onSubmit={handleSubmit}>
-        <label htmlFor="clause">Clause de contrat</label>
-        <textarea
-          id="clause"
-          rows={8}
-          value={text}
-          onChange={(event) => setText(event.target.value)}
-          placeholder="Collez ici une clause de votre contrat…"
-        />
-        <button type="submit" disabled={loading}>
-          {loading ? 'Analyse en cours…' : 'Expliquer'}
-        </button>
-      </form>
-      {error && (
-        <p role="alert" className="error">
-          {error}
-        </p>
-      )}
-      {answer && (
-        <section aria-label="Explication" className="answer">
-          <h2>Explication</h2>
-          <p>{answer.en_clair}</p>
-          {answer.a_retenir.length > 0 && (
-            <>
-              <h3>À retenir</h3>
-              <ul>
-                {answer.a_retenir.map((point) => (
-                  <li key={point}>{point}</li>
-                ))}
-              </ul>
-            </>
-          )}
-          <p className="notice">
-            Cette explication ne constitue pas un conseil juridique.
-          </p>
-        </section>
-      )}
-    </main>
+    <>
+      <BackgroundFX />
+      <div className="app">
+        <Header />
+        <main className="app__main">
+          <section className="panel" aria-label="Saisie de la clause">
+            <ClauseForm loading={loading} error={error} onSubmit={explain} />
+          </section>
+          <div className="app__result" aria-live="polite">
+            <JusticeGavel active={answer !== null} />
+            {loading ? (
+              <Loader />
+            ) : answer ? (
+              <AnswerCard answer={answer} />
+            ) : (
+              <EmptyState />
+            )}
+          </div>
+        </main>
+        <footer className="app__footer">
+          <div className="app__footer-brand">
+            <LexiLogo variant="footer" />
+            <span className="app__footer-tagline">
+              La clarté juridique, sans jargon.
+            </span>
+          </div>
+          <div className="app__footer-meta">
+            <p>Propulsé par Groq · openai/gpt-oss-20b</p>
+            <p>
+              <ShieldIcon size={14} />
+              Ceci n’est pas un conseil juridique.
+            </p>
+          </div>
+        </footer>
+      </div>
+    </>
   )
 }
 
