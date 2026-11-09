@@ -1,13 +1,126 @@
-import { render, screen } from '@testing-library/react'
-import { describe, expect, it } from 'vitest'
+import { fireEvent, render, screen } from '@testing-library/react'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import App from './App'
 
+type Route = { status: number; body: unknown }
+
+function mockApi(routes: Record<string, Route>) {
+  const fn = vi.fn((url: string) => {
+    const route = routes[url] ?? { status: 404, body: {} }
+    return Promise.resolve({
+      ok: route.status < 400,
+      status: route.status,
+      json: () => Promise.resolve(route.body),
+    })
+  })
+  vi.stubGlobal('fetch', fn)
+  return fn
+}
+
+const USER = { id: 1, email: 'a@b.fr' }
+const ANSWER = {
+  en_clair: 'En clair : vous payez le 5.',
+  a_retenir: ['Date : le 5'],
+}
+const SIGNED_IN = {
+  '/api/auth/me': { status: 200, body: USER },
+  '/api/history': { status: 200, body: [] },
+}
+
 describe('App', () => {
-  it('renders the Vite starter screen', () => {
+  afterEach(() => vi.unstubAllGlobals())
+
+  it('shows the login form when not signed in', async () => {
+    mockApi({ '/api/auth/me': { status: 401, body: {} } })
     render(<App />)
 
     expect(
-      screen.getByRole('heading', { name: 'Get started' }),
+      await screen.findByRole('heading', { name: 'Connexion' }),
     ).toBeInTheDocument()
+    expect(screen.queryByLabelText('Clause de contrat')).not.toBeInTheDocument()
+  })
+
+  it('shows the server error when login fails', async () => {
+    mockApi({
+      '/api/auth/me': { status: 401, body: {} },
+      '/api/auth/login': {
+        status: 401,
+        body: { detail: 'E-mail ou mot de passe incorrect.' },
+      },
+    })
+    render(<App />)
+
+    fireEvent.change(await screen.findByLabelText('Adresse e-mail'), {
+      target: { value: 'a@b.fr' },
+    })
+    fireEvent.change(screen.getByLabelText('Mot de passe'), {
+      target: { value: 'mauvais' },
+    })
+    fireEvent.click(screen.getByRole('button', { name: 'Se connecter' }))
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('incorrect')
+  })
+
+  it('goes back to the login form after logout', async () => {
+    mockApi({ ...SIGNED_IN, '/api/auth/logout': { status: 204, body: {} } })
+    render(<App />)
+
+    fireEvent.click(
+      await screen.findByRole('button', { name: 'Se déconnecter' }),
+    )
+
+    expect(
+      await screen.findByRole('heading', { name: 'Connexion' }),
+    ).toBeInTheDocument()
+  })
+
+  it('shows the explanation when signed in', async () => {
+    const fetchMock = mockApi({
+      ...SIGNED_IN,
+      '/api/explain': { status: 200, body: ANSWER },
+    })
+    render(<App />)
+
+    fireEvent.change(await screen.findByLabelText('Clause de contrat'), {
+      target: { value: 'Loyer' },
+    })
+    fireEvent.click(screen.getByRole('button', { name: 'Expliquer' }))
+
+    expect(await screen.findByText(/vous payez le 5/)).toBeInTheDocument()
+    expect(fetchMock).toHaveBeenCalledWith(
+      '/api/explain',
+      expect.objectContaining({ method: 'POST' }),
+    )
+  })
+
+  it('shows a clear message when the AI call fails', async () => {
+    mockApi({
+      ...SIGNED_IN,
+      '/api/explain': {
+        status: 504,
+        body: { detail: 'Le service d’IA a mis trop de temps.' },
+      },
+    })
+    render(<App />)
+
+    fireEvent.change(await screen.findByLabelText('Clause de contrat'), {
+      target: { value: 'Loyer' },
+    })
+    fireEvent.click(screen.getByRole('button', { name: 'Expliquer' }))
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('trop de temps')
+  })
+
+  it('does not call the server when the field is empty', async () => {
+    const fetchMock = mockApi(SIGNED_IN)
+    render(<App />)
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Expliquer' }))
+
+    expect(await screen.findByRole('alert')).toBeInTheDocument()
+    expect(fetchMock).not.toHaveBeenCalledWith(
+      '/api/explain',
+      expect.anything(),
+    )
   })
 })
